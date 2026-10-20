@@ -875,13 +875,7 @@ const apName = id => (APX[id]||{}).n || "?";
 const IMG = {};   // 파일로 불러온 이미지 {파일명: objectURL}
 const imgTpl = () => { try{ return localStorage.getItem("imgTpl") || "img/{id}.png"; }catch(e){ return "img/{id}.png"; } };
 function imgSrc(id){
-  const n = apName(id), sid = String(id); let best = null, sc = 0;
-  for(const k in IMG){
-    const st = k.replace(/\.[^.]+$/,"");
-    const s = (st===n||st===sid) ? 3 : (st.startsWith(n) && !/^[(（]/.test(st.slice(n.length))) ? 2 : new RegExp("(^|\\D)"+sid+"(\\D|$)").test(st) ? 1 : 0;
-    if(s>sc){ sc = s; best = IMG[k]; }
-  }
-  return best || imgTpl().replace("{id}",id).replace("{name}",encodeURIComponent(n));
+  return `img/${id}.png`;
 }
 function avatar(id,cls){
   const a = APX[id]||{c:"888888",n:"?"};
