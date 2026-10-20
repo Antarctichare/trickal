@@ -1,51 +1,218 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>트릭컬 와일드 카드 단계별 피증 효율 순위 계산기</title>
+<title>트릭컬 리바이브 · 와일드 카드 피증 효율 순위 계산기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f7ee;--card:#fff;--ink:#1f2a1c;--mute:#5d6b58;--line:#cfdac6;--acc:#2f7d3a;--acc-soft:#e4f2e6;--bad:#b3261e;--warn:#b26a00;--back:#2563eb;--mid:#16a34a;--front:#dc2626;--r1:#64748b;--r2:#16a34a;--r3:#2563eb;--r4:#9333ea}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a12;--card:#1d261b;--ink:#e6efe0;--mute:#9fb097;--line:#33422f;--acc:#6cc27a;--acc-soft:#243826;--bad:#ff8a80;--warn:#fbbf24;--back:#60a5fa;--mid:#4ade80;--front:#f87171;--r1:#94a3b8;--r2:#4ade80;--r3:#60a5fa;--r4:#c084fc}}
-:root[data-theme="dark"]{--bg:#141a12;--card:#1d261b;--ink:#e6efe0;--mute:#9fb097;--line:#33422f;--acc:#6cc27a;--acc-soft:#243826;--bad:#ff8a80;--warn:#fbbf24}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f2f6ee;
+  --card:#ffffff;
+  --card-sub:#f7faf4;
+  --ink:#1b2618;
+  --mute:#566651;
+  --line:#d2deca;
+  --line-strong:#b8cbb0;
+  --acc:#2b7a36;
+  --acc-hover:#23662c;
+  --acc-soft:#e3f3e6;
+  --acc-ink:#17491e;
+  --bad:#c62828;
+  --warn:#b26a00;
+  --warn-soft:#fff4e0;
+  --back:#2563eb;
+  --back-soft:#eff6ff;
+  --mid:#16a34a;
+  --mid-soft:#f0fdf4;
+  --front:#dc2626;
+  --front-soft:#fef2f2;
+  --r1:#64748b;
+  --r2:#16a34a;
+  --r3:#2563eb;
+  --r4:#9333ea;
+  --shadow:0 2px 10px rgba(24,42,20,0.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121710;
+    --card:#1b2319;
+    --card-sub:#222c20;
+    --ink:#e8f0e4;
+    --mute:#9cb096;
+    --line:#2f3d2b;
+    --line-strong:#43573e;
+    --acc:#68c476;
+    --acc-hover:#7dd18a;
+    --acc-soft:#233825;
+    --acc-ink:#b7ebc0;
+    --bad:#ff8a80;
+    --warn:#fbbf24;
+    --warn-soft:#332814;
+    --back:#60a5fa;
+    --back-soft:#1b283d;
+    --mid:#4ade80;
+    --mid-soft:#193022;
+    --front:#f87171;
+    --front-soft:#361d1d;
+    --r1:#94a3b8;
+    --r2:#4ade80;
+    --r3:#60a5fa;
+    --r4:#c084fc;
+    --shadow:0 4px 14px rgba(0,0,0,0.28);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121710;
+  --card:#1b2319;
+  --card-sub:#222c20;
+  --ink:#e8f0e4;
+  --mute:#9cb096;
+  --line:#2f3d2b;
+  --line-strong:#43573e;
+  --acc:#68c476;
+  --acc-hover:#7dd18a;
+  --acc-soft:#233825;
+  --acc-ink:#b7ebc0;
+  --bad:#ff8a80;
+  --warn:#fbbf24;
+  --warn-soft:#332814;
+  --back:#60a5fa;
+  --back-soft:#1b283d;
+  --mid:#4ade80;
+  --mid-soft:#193022;
+  --front:#f87171;
+  --front-soft:#361d1d;
+  --r1:#94a3b8;
+  --r2:#4ade80;
+  --r3:#60a5fa;
+  --r4:#c084fc;
+  --shadow:0 4px 14px rgba(0,0,0,0.28);
+}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 "Pretendard","Noto Sans KR","Apple SD Gothic Neo",sans-serif}
-main{max-width:1240px;margin:0 auto;padding:16px}
-h1{font-size:22px;margin:4px 0 2px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-h2{font-size:16px;margin:0 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.sub,.note{color:var(--mute);font-size:13px;margin:4px 0 0}
-.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
-.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:8px 12px}
-label{display:flex;flex-direction:column;font-size:12.5px;color:var(--mute);gap:3px}
-input,select,button{font:inherit;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);box-sizing:border-box;min-width:0}
-input,select{width:100%}
-button{cursor:pointer;width:auto;background:var(--card);font-weight:600;padding:5px 11px;transition:background .15s,border-color .15s}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.55 "Pretendard","Noto Sans KR","Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:1260px;margin:0 auto;padding:18px 16px 40px}
+
+/* 상단 헤더 & 가이드 */
+.hero-header{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow)}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--acc-soft);color:var(--acc);font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px;margin-bottom:6px}
+h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+h2{font-size:16px;font-weight:700;letter-spacing:-0.01em;margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.sub,.note{color:var(--mute);font-size:13px;margin:4px 0 0;line-height:1.55}
+.guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+@media (max-width:860px){.guide-grid{grid-template-columns:1fr}}
+.guide-step{background:var(--card-sub);border:1px solid var(--line);border-radius:10px;padding:11px 13px;display:flex;flex-direction:column;gap:4px}
+.guide-step-head{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13.5px;color:var(--ink)}
+.step-num{display:inline-flex;align-items:center;justify-content:center;background:var(--acc);color:#fff;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;letter-spacing:0.02em}
+.guide-step p{margin:0;font-size:12.5px;color:var(--mute);line-height:1.5}
+.notice-bar{margin-top:12px;padding:9px 12px;border-radius:8px;background:var(--acc-soft);border:1px solid var(--line);font-size:12.5px;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.notice-pills{display:flex;gap:6px;flex-wrap:wrap}
+.notice-pill{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:600;color:var(--mute)}
+
+/* 공통 박스 및 접기/펼치기 UI */
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0;box-shadow:var(--shadow)}
+details.box{padding:0;overflow:hidden}
+details.box > summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px;user-select:none;transition:background .15s}
+details.box > summary::-webkit-details-marker{display:none}
+details.box > summary:hover{background:var(--card-sub)}
+details.box[open] > summary{border-bottom:1px solid var(--line);background:var(--card-sub)}
+.details-body{padding:14px 18px 16px}
+.sum-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sum-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:700;background:var(--acc-soft);color:var(--acc)}
+.sum-sub{font-size:12.5px;color:var(--mute);font-weight:400}
+.sum-toggle{font-size:12px;font-weight:600;color:var(--acc);background:var(--card);border:1px solid var(--line);padding:3px 10px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+details[open] > summary .sum-toggle::after{content:" 접기 ▲"}
+details:not([open]) > summary .sum-toggle::after{content:" 펼치기 ▼"}
+
+/* 서브 details (편성 및 이미지 업로더) */
+details.sub-details{border:1px solid var(--line);border-radius:10px;background:var(--card-sub);margin-top:12px;overflow:hidden}
+details.sub-details > summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13.5px;user-select:none;transition:background .15s}
+details.sub-details > summary::-webkit-details-marker{display:none}
+details.sub-details > summary:hover{background:var(--acc-soft)}
+details.sub-details[open] > summary{border-bottom:1px solid var(--line)}
+.sub-details-body{padding:12px 14px}
+
+/* 입력 폼 & 버튼 */
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px 12px}
+label{display:flex;flex-direction:column;font-size:12.5px;font-weight:600;color:var(--mute);gap:4px}
+input,select,button{font:inherit;padding:6px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);color:var(--ink);box-sizing:border-box;min-width:0;transition:border-color .15s,box-shadow .15s,background .15s}
+input:hover,select:hover{border-color:var(--acc)}
+input,select{width:100%;font-weight:500}
+button{cursor:pointer;width:auto;background:var(--card);font-weight:600;padding:6px 12px;font-size:13px}
 button:hover{border-color:var(--acc);background:var(--acc-soft)}
 button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
-button.pri:hover{opacity:0.92}
+button.pri:hover{background:var(--acc-hover);opacity:0.96}
 input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
-.scroll{overflow-x:auto}
+
+/* 표 스타일 */
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{background:var(--card-sub);font-weight:700;color:var(--mute);font-size:12px;letter-spacing:-0.01em;position:sticky;top:0;z-index:1}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td, #tb tr:not(:first-child):hover td{background:var(--card-sub)}
 th:nth-child(-n+5),td:nth-child(-n+5){text-align:left}
-td input[type=number]{width:58px;padding:3px 5px;text-align:right}
-.best{color:var(--acc);font-weight:700}
-.rank-badge{display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-radius:6px;font-weight:700;font-size:12px;background:var(--bg);border:1px solid var(--line)}
-.rank-top3{background:var(--acc);color:#fff;border-color:var(--acc)}
+td input[type=number]{width:62px;padding:4px 6px;text-align:right}
+.best{color:var(--acc);font-weight:800}
+.eff-cell{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.eff-bar-bg{width:96px;height:5px;background:var(--line);border-radius:999px;overflow:hidden}
+.eff-bar-fill{height:100%;background:var(--acc);border-radius:999px}
+
+/* 배지 */
+.rank-badge{display:inline-block;min-width:48px;text-align:center;padding:3px 7px;border-radius:6px;font-weight:700;font-size:12px;background:var(--card-sub);border:1px solid var(--line);color:var(--mute)}
+.rank-top3{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 1px 4px rgba(43,122,54,0.25)}
 .rank-top10{background:var(--acc-soft);color:var(--acc);border-color:var(--acc)}
-.badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11.5px;font-weight:600}
-.r1{color:var(--r1);border:1px solid var(--r1)}
-.r2{color:var(--r2);border:1px solid var(--r2)}
-.r3{color:var(--r3);border:1px solid var(--r3)}
-.r4{color:var(--r4);border:1px solid var(--r4)}
-.tag-cost{display:inline-block;background:var(--acc-soft);color:var(--acc);font-size:11px;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600}
-.preset-grid{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:10px;margin-top:8px}
-@media (max-width:900px){.preset-grid{grid-template-columns:1fr}}
-.col-box{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;padding:10px;background:var(--bg)}
-.col-back{border-left-color:var(--back)}
-.col-mid{border-left-color:var(--mid)}
-.col-front{border-left-color:var(--front)}
-h3.sec{font-size:14px;margin:14px 0 6px}
-.qgrp{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:10px;background:var(--bg)}
-.qgrp .qt{font-weight:700;font-size:13px;margin-bottom:8px}
+.badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:11.5px;font-weight:700}
+.r1{color:var(--r1);border:1px solid var(--r1);background:rgba(100,116,139,0.08)}
+.r2{color:var(--r2);border:1px solid var(--r2);background:rgba(22,163,74,0.08)}
+.r3{color:var(--r3);border:1px solid var(--r3);background:rgba(37,99,235,0.08)}
+.r4{color:var(--r4);border:1px solid var(--r4);background:rgba(147,51,234,0.08)}
+.tag-cost{display:inline-block;background:var(--acc-soft);color:var(--acc);font-size:11px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:700}
+
+/* 9사도 미니 이미지 프리뷰 바 (기본 접기 상태에서 표시) */
+.party-preview-wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:10px 14px 12px;background:var(--card);border-top:1px solid var(--line)}
+@media (max-width:860px){.party-preview-wrap{grid-template-columns:1fr}}
+.pp-col{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;border:1px solid var(--line);border-left:4px solid var(--line);background:var(--card-sub)}
+.pp-col.pp-back{border-left-color:var(--back)}
+.pp-col.pp-mid{border-left-color:var(--mid)}
+.pp-col.pp-front{border-left-color:var(--front)}
+.pp-col-label{font-size:11.5px;font-weight:800;min-width:34px;text-align:center;line-height:1.25}
+.pp-back .pp-col-label{color:var(--back)}
+.pp-mid .pp-col-label{color:var(--mid)}
+.pp-front .pp-col-label{color:var(--front)}
+.pp-list{display:flex;gap:8px;flex-wrap:wrap;flex:1;justify-content:space-around}
+.pp-item{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:62px;text-align:center}
+.pp-item .av.pp-av{width:46px;height:46px;border-radius:10px;font-size:20px;box-shadow:0 1px 4px rgba(0,0,0,0.12);border:2px solid var(--card)}
+.pp-name{font-size:11.5px;font-weight:700;color:var(--ink);max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
+.pp-share{font-size:10.5px;font-weight:700;color:var(--acc);background:var(--acc-soft);padding:0 5px;border-radius:999px;line-height:1.4}
+
+/* 사도 편성 3열 그리드 */
+.preset-grid{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:12px;margin-top:10px}
+@media (max-width:960px){.preset-grid{grid-template-columns:1fr}}
+.col-box{border:1px solid var(--line);border-top:4px solid var(--line);border-radius:10px;padding:12px;background:var(--card)}
+.col-back{border-top-color:var(--back)}
+.col-mid{border-top-color:var(--mid)}
+.col-front{border-top-color:var(--front)}
+.col-title{font-weight:800;font-size:13.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.col-back .col-title{color:var(--back)}
+.col-mid .col-title{color:var(--mid)}
+.col-front .col-title{color:var(--front)}
+.apos{background:var(--card-sub);border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-top:8px}
+.col-title + .apos{margin-top:0}
+.apos-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.apos-head b{font-size:13.5px}
+.apos-head select{width:auto;padding:2px 6px;font-size:12px}
+.apos-head .sh{margin-left:auto;flex-direction:row;align-items:center;gap:4px;font-size:12px;font-weight:600}
+.apos-head .sh .pct{color:var(--acc);font-weight:800;min-width:46px;text-align:right;background:var(--acc-soft);padding:1px 5px;border-radius:4px}
+.apos-head .sh input{width:76px;padding:3px 5px;text-align:right;font-weight:600}
+.apos .a-slot{width:100%;margin-top:4px;font-size:12px;padding:4px 7px}
+
+/* 계수 설정 및 버프 표 */
+h3.sec{font-size:14px;margin:16px 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qgrp{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:10px;background:var(--card-sub)}
+.qgrp .qt{font-weight:700;font-size:13px;margin-bottom:8px;color:var(--ink)}
 .qg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 12px}
 @media (max-width:900px){.qg{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .qg label{justify-content:flex-end}
@@ -53,71 +220,125 @@ h3.sec{font-size:14px;margin:14px 0 6px}
 #base th,#base td,#bf th,#bf td{text-align:left;vertical-align:middle}
 #base td input[type=number],#bf td input[type=number]{width:76px;text-align:right}
 #base td input:not([type=number]):not([type=checkbox]),#bf td input:not([type=number]):not([type=checkbox]){width:100%}
-.apos{border-top:1px dashed var(--line);padding:6px 0 4px}
-.col-title + .apos{border-top:none}
-.apos-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
-.apos-head b{font-size:13px}
-.apos-head select{width:auto;padding:2px 4px;font-size:12px}
-.apos-head .sh{margin-left:auto;flex-direction:row;align-items:center;gap:3px;font-size:12px}
-.apos-head .sh .pct{color:var(--acc);font-weight:700;min-width:44px;text-align:left}
-.apos-head .sh input{width:78px;padding:2px 4px;text-align:right}
-.apos .a-slot{width:100%;margin-top:3px;font-size:12px;padding:3px 5px}
-.col-title{font-weight:700;font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between}
-.col-back .col-title{color:var(--back)}
-.col-mid .col-title{color:var(--mid)}
-.col-front .col-title{color:var(--front)}
-.hero-line{font-size:12.5px;padding:3px 0;border-top:1px dashed var(--line);display:flex;justify-content:space-between;gap:6px}
-.hero-line:first-of-type{border-top:none}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
-.tab-btn{font-size:12.5px;padding:5px 11px;border-radius:999px}
-.tab-btn.active{background:var(--acc);color:#fff;border-color:var(--acc)}
-.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:10px}
-.kpi-card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
-.kpi-label{font-size:11.5px;color:var(--mute)}
-.kpi-val{font-size:15px;font-weight:700;color:var(--acc);margin-top:2px}
-.lv-pill{display:inline-block;padding:1px 7px;border-radius:4px;background:var(--acc-soft);color:var(--acc);font-weight:700;font-size:12px}
-.card-lv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 10px;margin-top:8px}
-.card-lv-item{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12.5px}
-.card-lv-item input{width:54px;text-align:right;padding:2px 4px}
-.card-lv-item select{width:76px;padding:2px 4px;font-size:12px}
 
-.apx{display:grid;grid-template-columns:minmax(170px,230px) 1fr;gap:14px;margin-top:8px}@media(max-width:760px){.apx{grid-template-columns:1fr}}
+/* 탭 & KPI 카드 */
+.filter-bar{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:10px 0 12px;padding:12px;background:var(--card-sub);border:1px solid var(--line);border-radius:10px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab-btn{font-size:12.5px;padding:6px 12px;border-radius:999px}
+.tab-btn.active{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 1px 4px rgba(43,122,54,0.25)}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:12px}
+.kpi-card{background:var(--card-sub);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:10px;padding:10px 13px}
+.kpi-label{font-size:11.5px;font-weight:600;color:var(--mute)}
+.kpi-val{font-size:15.5px;font-weight:800;color:var(--acc);margin-top:3px}
+.lv-pill{display:inline-block;padding:2px 7px;border-radius:5px;background:var(--acc-soft);color:var(--acc);font-weight:700;font-size:12px;margin-left:4px}
+
+/* 개별 카드 레벨 그리드 */
+.card-lv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:7px 10px;margin-top:10px}
+.card-lv-item{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--card-sub);border:1px solid var(--line);border-radius:7px;padding:5px 9px;font-size:12.5px}
+.card-lv-item input{width:54px;text-align:right;padding:3px 5px;font-weight:700}
+.card-lv-item select{width:76px;padding:3px 5px;font-size:12px}
+
+/* 도감 뷰 */
+.apx{display:grid;grid-template-columns:minmax(170px,220px) 1fr;gap:16px;margin-top:12px}@media(max-width:760px){.apx{grid-template-columns:1fr}}
 .av{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:54px;font-weight:800;color:#fff;overflow:hidden;background:var(--line)}
-.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.av.sm{width:38px;height:38px;border-radius:8px;font-size:18px;flex:none}
-.gb{display:flex;align-items:center;gap:6px;font-size:12px;margin:2px 0}.gb i{display:block;height:7px;border-radius:4px;background:var(--acc)}
-.sk{border-top:1px dashed var(--line);padding:6px 0;font-size:13px;white-space:pre-line}.sk b{color:var(--acc)}
-.tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);margin:0 4px 4px 0}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.av.sm{width:36px;height:36px;border-radius:8px;font-size:17px;flex:none}
+.gb{display:flex;align-items:center;gap:6px;font-size:12px;margin:3px 0}.gb i{display:block;height:7px;border-radius:4px;background:var(--acc)}
+.sk{border-top:1px dashed var(--line);padding:7px 0;font-size:13px;white-space:pre-line}.sk b{color:var(--acc)}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:var(--card-sub);margin:0 4px 4px 0}
 #eqt td{white-space:normal;text-align:left;vertical-align:top}#eqt td:first-child{white-space:nowrap}
-.apos-head .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.av.sm{margin-right:2px}.apos .ex{display:flex;gap:6px;align-items:center;font-size:11.5px;color:var(--mute);margin:3px 0;flex-wrap:wrap}.apos .ex input{width:52px;padding:2px 4px}.apos .ex select{width:auto;max-width:150px;padding:2px 4px}
+.apos-head .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.av.sm{margin-right:2px}
+.apos .ex{display:flex;gap:6px;align-items:center;font-size:11.5px;color:var(--mute);margin:4px 0;flex-wrap:wrap}
+.apos .ex input{width:50px;padding:2px 4px;text-align:right}
+.apos .ex select{width:auto;max-width:145px;padding:2px 5px}
 </style></head><body><main>
-<h1>트릭컬 와일드 카드 단계별 피증 효율 순위 계산기</h1>
-<p class="sub">프론티어 9사도 편성(기본: 후열 모모·우이·우로스 / 중열 에르핀·비비·리뉴아 / 전열 실비아·벨라·죠안, <b>사도별 장비·배치·입힌 피해량은 아래에서 직접 수정 가능</b>)을 기준으로, 각 카드의 <b>레벨업 단계별(예: 2→3렙, 3→4렙...) 와일드 카드 1장당 파티 최종 피해량 증가율(%)</b>을 계산해 1순위부터 정렬합니다. <b>모든 사도는 A3 스킬 13렙 기준</b>으로 작성되었습니다.</p>
+
+<header class="hero-header">
+  <div class="hero-top">
+    <div>
+      <div class="hero-badge">엘리아스 프론티어 · 와일드 카드 투자 최적화 도구</div>
+      <h1>트릭컬 와일드 카드 단계별 피증 효율 순위 계산기</h1>
+      <p class="sub">프론티어 9사도 편성과 전투 통계 피해량을 바탕으로, <b>어떤 카드의 몇 레벨 구간(예: 2→3렙, 3→4렙)에 와일드 카드를 투자해야 파티 최종 피해량이 가장 많이 오르는지</b> 와카 1장당 효율 순위로 계산합니다.</p>
+    </div>
+    <button type="button" id="themeBtn" title="라이트/다크 테마 전환">테마 전환</button>
+  </div>
+
+  <div class="guide-grid">
+    <div class="guide-step">
+      <div class="guide-step-head"><span class="step-num">STEP 1</span> 편성 · 아티팩트 · 피해량 입력</div>
+      <p><b>1번 섹션 &gt; 사도 편성 · 장비</b>에서 내 9사도 배치, 착용 아티팩트(3칸), 전투 통계의 <b>입힌 피해량(억)</b>을 입력하면 사도별 딜 비중(%)이 자동 계산됩니다.</p>
+    </div>
+    <div class="guide-step">
+      <div class="guide-step-head"><span class="step-num">STEP 2</span> 내 카드 현재 레벨 설정</div>
+      <p><b>조회 시작 레벨</b>로 전체 카드의 현재 레벨을 일괄 지정하거나, <b>2번 섹션</b>에서 이미 강화한 카드 레벨과 스펠 구매 장수를 개별 설정합니다.</p>
+    </div>
+    <div class="guide-step">
+      <div class="guide-step-head"><span class="step-num">STEP 3</span> 와일드 카드 투자 1순위 확인</div>
+      <p>하단 순위표에서 <b>와카 1장당 최종뎀 증가(+%/장)</b>가 가장 높은 구간부터 순서대로 강화하세요. 등급별 탭으로 전설·희귀·고급·일반 와카를 따로 볼 수 있습니다.</p>
+    </div>
+  </div>
+
+  <div class="notice-bar">
+    <span><b>기본 계산 전제</b> · 모든 사도 <b>어사이드 A3 및 스킬 13레벨</b> 기준 (메인 딜러: 중열 <b>에르핀(왕도)</b> 180초 전투 시뮬레이션)</span>
+    <div class="notice-pills">
+      <span class="notice-pill">전설 와카: 3×Lv장</span>
+      <span class="notice-pill">희귀 와카: 6×Lv장</span>
+      <span class="notice-pill">고급 와카: 10×Lv장</span>
+      <span class="notice-pill">일반 와카: 30×Lv장</span>
+      <span class="notice-pill" title="공격 속도 및 방어력 수치는 딜 계산에서 제외되어 공속 카드가 실제보다 낮게 평가될 수 있습니다.">참고: 공속·방어력 스탯은 딜 계산 미반영</span>
+    </div>
+  </div>
+</header>
 
 <details class="box" id="apBox">
-  <summary><b>0. 사도 도감 · 선택 (전체 사도 정보 / 편성 배치 / 이미지) — 클릭하여 열기</b></summary>
-  <div class="g" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))">
-    <label>사도 검색<input type="text" id="apQ" placeholder="이름·칭호 검색"></label>
-    <label>사도 선택<select id="apSel"></select></label>
-    <label>편성 슬롯에 배치 <span style="display:flex;gap:6px"><select id="apSlot"></select><button type="button" id="apPut" class="pri">배치</button></span></label>
+  <summary>
+    <span class="sum-left"><span class="sum-tag">도감 1</span> <b>사도 도감 및 편성 배치</b> <span class="sum-sub">— 전체 사도 스킬·어사이드 조회 / 편성 슬롯 교체 / 초상화 이미지 연결</span></span>
+    <span class="sum-toggle"></span>
+  </summary>
+  <div class="details-body">
+    <div class="g" style="grid-template-columns:repeat(auto-fill,minmax(230px,1fr))">
+      <label>사도 검색<input type="text" id="apQ" placeholder="사도 이름 또는 칭호 검색..."></label>
+      <label>사도 선택<select id="apSel"></select></label>
+      <label>현재 편성 슬롯에 바로 배치 <span style="display:flex;gap:6px"><select id="apSlot"></select><button type="button" id="apPut" class="pri">배치</button></span></label>
+    </div>
+    <div class="apx" id="apView"></div>
+    <details class="sub-details">
+      <summary><b>사도 초상화 이미지 불러오기 설정</b> <span class="sum-sub">(선택 사항 · 내 브라우저에 이미지 저장 또는 이미지 경로 지정)</span></summary>
+      <div class="sub-details-body">
+        <p class="note" style="margin-top:0">기본 화면은 사도 상징색 이니셜 아이콘으로 표시되며, 원하는 PNG 이미지를 연결하면 이 브라우저(IndexedDB)에 자동 저장되어 도감과 편성표에 함께 표시됩니다.<br>
+        ① <b>일괄 등록</b>: 파일명을 <code>사도이름.png</code>(예: <code>벨라.png</code>, <code>우이(기억).png</code>) 또는 <code>사도번호.png</code>(예: <code>10098.png</code>)로 맞춰 여러 파일이나 폴더를 선택하면 자동 매칭됩니다.<br>
+        ② <b>개별 등록</b>: 위 사도 정보 카드 좌측의 <b>'이 사도 이미지 지정'</b> 버튼으로 한 장씩 등록할 수 있습니다.<br>
+        ③ <b>웹 서버 경로</b>: 웹 호스팅 시 이미지 폴더를 함께 업로드한다면 주소 규칙(<code>{id}</code>·<code>{name}</code> 치환)을 지정해 자동 로드할 수 있습니다.</p>
+        <div class="g" style="margin-top:8px">
+          <label>이미지 파일 여러 장 선택<input type="file" id="imgFiles" accept="image/*" multiple></label>
+          <label>이미지 폴더 통째로 선택<input type="file" id="imgDir" webkitdirectory multiple></label>
+          <label>웹 이미지 주소 규칙<input type="text" id="imgTpl" value="img/{id}.png"></label>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px"><button type="button" id="imgClear">저장된 이미지 지우기</button> <span class="note" id="imgMsg" style="margin:0"></span></div>
+      </div>
+    </details>
   </div>
-  <div class="apx" id="apView"></div>
-  <details style="margin-top:10px"><summary><b>사도 이미지 불러오기</b> (파일·폴더 선택 / 주소 규칙)</summary>
-    <p class="note">게임 데이터(data.txt)에는 이미지 파일이 없어 직접 연결해야 합니다. 아카라이브 공략글에서 소개한 모션 추출 사이트(Jigglepedia류)에서 사도를 고르고 <b>Export Frames</b>로 받은 프레임 중 마음에 드는 PNG(투명 배경) 한 장을 쓰면 됩니다.<br>
-    ① <b>파일명 규칙</b>: <code>사도이름.png</code>(예: <code>벨라.png</code>, <code>우이(기억).png</code>) 또는 <code>사도번호.png</code>(<code>10098.png</code>)로 저장해 아래에서 여러 장·폴더를 고르면 자동 매칭되고, 이 브라우저에 저장됩니다. 이름이 비슷한 스킨 변형(<code>벨라(바니).png</code>)은 일부러 매칭하지 않습니다.<br>
-    ② 사도 도감에서 사도를 고른 뒤 <b>'이 사도 이미지 지정'</b>으로 한 장씩 지정할 수도 있습니다.<br>
-    ③ 직접 웹에 올려 쓴다면 주소 규칙을 지정하세요(<code>{id}</code>·<code>{name}</code> 치환).</p>
-    <div class="g"><label>이미지 파일 여러 장<input type="file" id="imgFiles" accept="image/*" multiple></label><label>이미지 폴더 통째로<input type="file" id="imgDir" webkitdirectory multiple></label><label>주소 규칙<input type="text" id="imgTpl" value="img/{id}.png"></label></div>
-    <div style="margin-top:6px"><button type="button" id="imgClear">저장된 이미지 지우기</button> <span class="note" id="imgMsg"></span></div>
-  </details>
 </details>
-<details class="box" id="eqBox"><summary><b>장비 도감 — 아티팩트·스펠 전체 (효과 설명 · 12렙 수치 · 착용 사도)</b></summary>
-  <div class="g" style="margin:8px 0"><label>검색<input type="text" id="eqQ" placeholder="카드명·효과 검색"></label>
-  <label>종류<select id="eqT"><option value="all">전체</option><option value="0">아티팩트</option><option value="1">스펠</option></select></label>
-  <label>등급<select id="eqR"><option value="0">전체</option><option value="4">전설</option><option value="3">희귀</option><option value="2">고급</option><option value="1">일반</option></select></label></div>
-  <div class="scroll"><table id="eqt"></table></div></details>
+
+<details class="box" id="eqBox">
+  <summary>
+    <span class="sum-left"><span class="sum-tag">도감 2</span> <b>전체 장비 도감 (아티팩트 · 스펠)</b> <span class="sum-sub">— 전체 카드 12레벨 기준 효과 · 스탯 · 현재 착용 사도 확인</span></span>
+    <span class="sum-toggle"></span>
+  </summary>
+  <div class="details-body">
+    <div class="g" style="margin-bottom:10px">
+      <label>카드명 / 효과 검색<input type="text" id="eqQ" placeholder="카드 이름 또는 특수효과 키워드 검색..."></label>
+      <label>카드 종류<select id="eqT"><option value="all">전체 (아티팩트 + 스펠)</option><option value="0">아티팩트만</option><option value="1">스펠만</option></select></label>
+      <label>카드 등급<select id="eqR"><option value="0">전체 등급</option><option value="4">전설</option><option value="3">희귀</option><option value="2">고급</option><option value="1">일반</option></select></label>
+    </div>
+    <div class="scroll"><table id="eqt"></table></div>
+  </div>
+</details>
 
 <div class="box">
-  <h2><span>1. 조회할 레벨 구간 및 일괄 레벨 설정</span></h2>
+  <h2>
+    <span class="sum-left"><span class="sum-tag">STEP 1</span> <span>조회 레벨 구간 및 파티 편성 설정</span></span>
+    <span class="sum-sub">내 카드 레벨 구간과 9사도 편성·착용 장비를 설정합니다</span>
+  </h2>
   <div class="g" id="wb">
     <label>조회 시작 레벨 (일괄 적용)
       <select id="globalStartLv">
@@ -126,7 +347,7 @@ h3.sec{font-size:14px;margin:14px 0 6px}
         <option value="3">전체 3레벨부터 보기 (3→4렙~)</option>
         <option value="4">전체 4레벨부터 보기 (4→5렙~)</option>
         <option value="5">전체 5레벨부터 보기 (5→6렙~)</option>
-        <option value="custom">아래 개별 카드 시작 레벨 사용</option>
+        <option value="custom">개별 카드 시작 레벨 사용 (2번 섹션)</option>
       </select>
     </label>
     <label>목표 레벨 상한 (최대 12)
@@ -138,77 +359,101 @@ h3.sec{font-size:14px;margin:14px 0 6px}
         <option value="0">순수 스탯 증가분만 반영</option>
       </select>
     </label>
-    <label>스펠 카드 포함 여부
+    <label>순위표 표시 대상
       <select id="spellIncludeMode">
-        <option value="dps" selected>프론티어 착용 아티팩트 + 주요 딜 스펠</option>
-        <option value="art_only">프론티어 착용 아티팩트만 보기</option>
+        <option value="dps" selected>착용 아티팩트 + 주요 딜 스펠 모두</option>
+        <option value="art_only">착용 중인 아티팩트만 보기</option>
         <option value="spell_only">스펠 카드만 보기</option>
       </select>
     </label>
-    <label>멋진 선배님: 6학년 사도 수
+    <label>'멋진 선배님'용 6학년 사도 수
       <input type="number" id="grade6Cnt" min="0" max="9" value="4">
     </label>
   </div>
-  <details id="loadBox" style="margin-top:10px"><summary><b>사도 편성 · 장비 — 클릭하여 열기</b></summary>
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px">
-    <b style="font-size:13.5px">사도 편성 · 장비 (칸마다 아티팩트 선택, 열·입힌 피해량도 수정 가능 — 딜 비중은 피해량 합 대비 자동 계산)</b>
-    <button type="button" id="resetLoadout">기본 편성으로 되돌리기</button>
-  </div>
-  <div class="preset-grid" id="loadoutGrid"></div>
+
+  <details id="loadBox" class="sub-details">
+    <summary style="flex-direction:column;align-items:stretch;padding:0;gap:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px">
+        <span class="sum-left"><b>프론티어 9사도 편성 · 착용 아티팩트 · 입힌 피해량 설정</b> <span class="sum-sub">(클릭하여 장비·배치·피해량 상세 수정)</span></span>
+        <span class="sum-toggle"></span>
+      </div>
+      <div class="party-preview-wrap" id="partyPreview"></div>
+    </summary>
+    <div class="sub-details-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <span class="note" style="margin:0">· 전투 결과 화면의 <b>사도별 입힌 피해량(억)</b>을 입력하면 전체 합 대비 <b>딜 비중(%)</b>이 자동 계산되어 아티팩트·열 버프 효율에 즉시 반영됩니다.</span>
+        <button type="button" id="resetLoadout">기본 편성으로 되돌리기</button>
+      </div>
+      <div class="preset-grid" id="loadoutGrid"></div>
+    </div>
   </details>
 </div>
 
 <details class="box">
-  <summary><b>2. 카드별 시작 레벨 및 스펠 구매 장수 개별 설정 (클릭하여 열기)</b></summary>
-  <p class="note">특정 카드만 이미 레벨이 높거나(예: 에르핀의 지팡이 2렙, 멋진 선배님 3렙), 스펠 구매 장수를 조정하고 싶을 때(기본 2장, 파스텔빛 소풍·단체 월반·수상한 물약·깜짝 상자·신분 상승 등 특수효과 카드·멋진 선배님은 최대 1장) 여기서 바꾸면 상단 '조회 시작 레벨'이 자동으로 '개별 카드 시작 레벨 사용'으로 전환됩니다.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-    <button type="button" class="lv-preset-btn" data-lv="1">전체 시작 1렙으로 초기화</button>
-    <button type="button" class="lv-preset-btn" data-lv="2">전체 시작 2렙으로 초기화</button>
-    <button type="button" class="lv-preset-btn" data-lv="3">전체 시작 3렙으로 초기화</button>
+  <summary>
+    <span class="sum-left"><span class="sum-tag">STEP 2</span> <b>카드별 현재 레벨 및 스펠 구매 장수 개별 설정</b> <span class="sum-sub">— 이미 강화된 카드가 있거나 스펠 장수를 조정할 때 사용</span></span>
+    <span class="sum-toggle"></span>
+  </summary>
+  <div class="details-body">
+    <p class="note" style="margin-top:0">특정 카드만 이미 레벨이 높거나(예: 에르핀의 지팡이 3렙, 유리 파랑새 4렙), 프론티어에서 구매하는 스펠 장수를 바꾸고 싶을 때 개별 설정하세요. (일반 스펠 최대 2장, <b>멋진 선배님·파스텔빛 소풍·단체 월반 등 특수 스펠은 최대 1장</b>) 값을 변경하면 상단 조회 모드가 자동으로 '개별 카드 시작 레벨 사용'으로 전환됩니다.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button type="button" class="lv-preset-btn" data-lv="1">전체 시작 1렙으로 초기화</button>
+      <button type="button" class="lv-preset-btn" data-lv="2">전체 시작 2렙으로 초기화</button>
+      <button type="button" class="lv-preset-btn" data-lv="3">전체 시작 3렙으로 초기화</button>
+    </div>
+    <div class="card-lv-grid" id="cardLvGrid"></div>
   </div>
-  <div class="card-lv-grid" id="cardLvGrid"></div>
 </details>
 
 <details class="box">
-  <summary><b>3. 왕르핀 기준 계수 설정 (효율 계산) — 딜러 스탯 · 기본 효과 · 인게임 버프 (사도별 딜 비중은 위 편성 칸의 '피해량'으로 수정) (클릭하여 열기)</b></summary>
-  <div id="qin"></div>
-  <div class="qgrp"><div class="qt">표 A·B 버프 반영 현황 (180초 평균 / 최대) — 위 '수동 추가' 칸과 별개로 아래 표의 효과가 자동 합산되어 계산에 들어갑니다</div><div class="kpi-strip" id="bsum"></div></div>
-  <h3 class="sec">A. 기본 효과 — 어사이드(A2·A3) 상시 효과 <span class="sub" style="font-weight:400">에르핀(왕도)(순수 성격·중열)에게 적용 · 항상 켜진 값 · A3 · 스킬 13렙 기준 · 에르핀 저학년 100% / 고학년 0% · 수치는 게임 데이터 원문</span></h3>
-  <div class="scroll"><table id="base"></table></div>
-  <div style="margin-top:6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" id="addBase">기본 효과 추가</button><span class="note" id="baseSum" style="margin:0"></span></div>
-  <h3 class="sec">B. 인게임 버프 — 스킬·상태 효과 (지속시간·쿨타임이 있는 것)</h3>
-  <div class="scroll"><table id="bf"></table></div>
-  <div style="margin-top:6px"><button type="button" id="addb">버프 추가</button></div>
-  <p class="note" style="margin-top:8px">· <b>A는 어사이드로 올라가는 상시 효과, B는 버프로 올라가는 효과</b>로 분리했습니다. 체크 해제하면 계산에서 빠지고, <b>[참고]</b> 표시 행은 에르핀(왕도)이 아닌 사도 자신에게만 걸려 계산에 쓰지 않는 정보용입니다.<br>
-  · <b>공격 속도(%)는 계산하지 않습니다</b> (리뉴아 가속 포함). <b>방어력</b>도 계산하지 않으며 <b>가중치는 0</b>입니다.<br>
-  · 계산의 복잡성 및 어려움 때문에, <b>공속 아티팩트/카드들이 저평가될 수 있습니다.</b></p>
-  <p class="note" id="wt" style="margin-top:8px;font-weight:600;color:var(--ink)"></p>
-  <div class="g" id="wm" style="margin-top:8px"></div>
+  <summary>
+    <span class="sum-left"><span class="sum-tag">상세 설정</span> <b>에르핀(왕도) 기준 스탯 · 어사이드(A) · 인게임 버프(B) 계수 설정</b> <span class="sum-sub">— 스탯 1%p당 딜 증가 가중치 상세 커스텀</span></span>
+    <span class="sum-toggle"></span>
+  </summary>
+  <div class="details-body">
+    <div id="qin"></div>
+    <div class="qgrp">
+      <div class="qt">표 A·B 버프 합산 현황 (180초 전투 평균 / 최대치) — 아래 두 표에서 체크된 버프들이 자동 합산되어 스탯 한계효율 계산에 반영됩니다</div>
+      <div class="kpi-strip" id="bsum"></div>
+    </div>
+    <h3 class="sec">A. 상시 기본 효과 (어사이드 A2 · A3) <span class="sub" style="font-weight:400">메인 딜러 에르핀(왕도)(순수·중열) 적용 기준 · A3 및 스킬 13레벨 수치</span></h3>
+    <div class="scroll"><table id="base"></table></div>
+    <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" id="addBase">기본 효과 추가</button><span class="note" id="baseSum" style="margin:0"></span></div>
+    <h3 class="sec">B. 인게임 발동 버프 (저학년 · 고학년 스킬 및 상태 효과) <span class="sub" style="font-weight:400">지속시간과 쿨타임(0초=무한 유지 상시)에 따라 180초 가동률을 계산합니다</span></h3>
+    <div class="scroll"><table id="bf"></table></div>
+    <div style="margin-top:8px"><button type="button" id="addb">버프 추가</button></div>
+    <p class="note" style="margin-top:10px">· <b>체크박스</b>를 해제하면 해당 버프를 계산에서 제외하며, 사도를 교체하면 해당 사도의 어사이드·스킬 버프로 자동 갱신됩니다. (<b>[참고]</b> 행은 에르핀(왕도)에게 적용되지 않는 본인 전용 버프입니다.)<br>
+    · <b>공격 속도(%) 및 방어력 스탯은 딜 계산에 반영하지 않습니다</b> (기본 가중치 0). 따라서 공격 속도 위주 아티팩트·스펠은 실제 체감보다 순위가 낮게 표시될 수 있습니다.</p>
+    <p class="note" id="wt" style="margin-top:8px;font-weight:700;color:var(--acc)"></p>
+    <div class="g" id="wm" style="margin-top:8px"></div>
+  </div>
 </details>
 
 <div class="box">
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
     <h2 id="sum" style="margin:0">단계별 와일드 카드 효율 순위표</h2>
-    <div style="display:flex;gap:8px;align-items:center">
-      <label style="flex-direction:row;align-items:center;gap:5px;font-size:12.5px">
-        <input type="checkbox" id="onlyOneStepPerCard" style="width:auto"> 카드당 가장 효율 높은 1개 구간만 표시
-      </label>
+    <label style="flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer">
+      <input type="checkbox" id="onlyOneStepPerCard" style="width:auto"> <b>카드당 가장 효율 높은 1개 구간만 요약해서 보기</b>
+    </label>
+  </div>
+
+  <div class="filter-bar">
+    <div class="tabs" id="rarityTabs">
+      <button type="button" class="tab-btn active" data-r="0">전체 등급 통합 순위</button>
+      <button type="button" class="tab-btn" data-r="4">전설 와일드 카드 순위 (3×Lv장)</button>
+      <button type="button" class="tab-btn" data-r="3">희귀 와일드 카드 순위 (6×Lv장)</button>
+      <button type="button" class="tab-btn" data-r="2">고급 와일드 카드 순위 (10×Lv장)</button>
+      <button type="button" class="tab-btn" data-r="1">일반 와일드 카드 순위 (30×Lv장)</button>
     </div>
+    <label style="min-width:260px;flex:1;max-width:360px">카드명 · 착용 사도 · 효과 빠른 검색
+      <input type="text" id="searchInp" placeholder="예: 지팡이, 파랑새, 선배님, 에르핀, 중열...">
+    </label>
   </div>
-  <label style="max-width:380px;margin-top:8px">카드명 / 효과 검색
-    <input type="text" id="searchInp" placeholder="예: 지팡이, 파랑새, 선배님, 인장...">
-  </label>
-  <div class="tabs" id="rarityTabs">
-    <button type="button" class="tab-btn active" data-r="0">전체 등급 통합 순위</button>
-    <button type="button" class="tab-btn" data-r="4">전설 와일드 카드 순위 (3×Lv장)</button>
-    <button type="button" class="tab-btn" data-r="3">희귀 와일드 카드 순위 (6×Lv장)</button>
-    <button type="button" class="tab-btn" data-r="2">고급 와일드 카드 순위 (10×Lv장)</button>
-    <button type="button" class="tab-btn" data-r="1">일반 와일드 카드 순위 (30×Lv장)</button>
-  </div>
+
   <div class="kpi-strip" id="kpiStrip"></div>
   <div class="scroll"><table id="tb"></table></div>
-  <p class="note">· <b>와일드 카드 필요 장수</b>: 현재 레벨 L에서 L+1로 올릴 때 필요한 장수는 <b>전설 3×L장, 희귀 6×L장, 고급 10×L장, 일반 30×L장</b>입니다 (예: 전설 2→3렙은 6장, 3→4렙은 9장).<br>
-  · <b>와카 1장당 최종뎀 +%</b> = (해당 레벨업 단계에서 오르는 파티 최종 피해량 증가율 %) ÷ (해당 단계 필요 와일드 카드 장수).</p>
+  <p class="note" style="margin-top:10px">· <b>레벨업 필요 와일드 카드 장수</b>: 현재 레벨 L → L+1 강화 시 <b>전설 3×L장, 희귀 6×L장, 고급 10×L장, 일반 30×L장</b>이 소모됩니다. (예: 전설 2→3렙은 6장, 3→4렙은 9장)<br>
+  · <b>와카 1장당 최종뎀 증가(효율)</b> = (해당 단계 강화 시 오르는 파티 전체 최종 피해량 증가율 %) ÷ (필요 와일드 카드 장수). 수치가 높을수록 적은 와일드 카드로 파티 딜을 가장 크게 올리는 구간입니다.</p>
 </div>
 </main>
 <script>
@@ -788,45 +1033,58 @@ function render(){
   // Sort strictly by Efficiency per 1 Wildcard (와카 1장당 최종뎀 증가율 %) descending!
   steps.sort((a,b) => b.effPerWild - a.effPerWild || b.totalGain - a.totalGain || a.fromLv - b.fromLv);
 
+  const maxEff = steps.length ? steps[0].effPerWild : 1;
   let h = `<tr>
     <th>순위</th>
-    <th>카드명 및 레벨업 단계</th>
-    <th>등급·종류</th>
-    <th>프론티어 적용 대상</th>
+    <th>카드명 · 강화 단계</th>
+    <th>등급 · 분류</th>
+    <th>적용 대상 (착용 사도 / 범위)</th>
     <th>해당 단계 상승 효과 (스탯 + 특수효과)</th>
-    <th>필요 와카</th>
-    <th>총 최종뎀 증가</th>
-    <th>와카 1장당 최종뎀 증가 (효율)</th>
+    <th>소모 와카</th>
+    <th>단계 총 딜 증가</th>
+    <th>와카 1장당 효율</th>
   </tr>`;
+
+  if(!steps.length){
+    h += `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--mute)">조건에 맞는 레벨업 구간이 없습니다. 검색어나 필터 설정을 확인해 주세요.</td></tr>`;
+  }
 
   steps.forEach((s, idx) => {
     const rank = idx + 1;
     const rCls = rank <= 3 ? "rank-badge rank-top3" : (rank <= 10 ? "rank-badge rank-top10" : "rank-badge");
     const costTag = s.gd.costDelta < 0 ? `<span class="tag-cost">코스트 ${s.gd.costDelta}</span>` : "";
     const effPart = s.gd.effDesc ? ` · <span style="color:var(--acc);font-weight:600">${s.gd.effDesc}</span>` : "";
+    const pctBar = Math.max(4, Math.min(100, (s.effPerWild / maxEff) * 100));
 
     h += `<tr>
-      <td><span class="${rCls}">${rank}순위</span></td>
+      <td><span class="${rCls}">${rank}위</span></td>
       <td><b>${s.x.n}</b> <span class="lv-pill">${s.fromLv} → ${s.toLv} Lv</span>${costTag}</td>
-      <td><span class="badge r${s.x.r}">${RN[s.x.r-1]} ${s.x.t===0?"아티":"스펠"}</span></td>
-      <td style="font-size:12px;color:var(--mute)">${s.gd.targetDesc}</td>
-      <td style="font-size:12px">${s.gd.statDesc}${effPart}</td>
+      <td><span class="badge r${s.x.r}">${RN[s.x.r-1]} ${s.x.t===0?"아티팩트":"스펠"}</span></td>
+      <td style="font-size:12.5px;color:var(--mute);font-weight:500">${s.gd.targetDesc}</td>
+      <td style="font-size:12.5px">${s.gd.statDesc}${effPart}</td>
       <td><b>${s.needWild}장</b></td>
-      <td>+${f(s.totalGain, 3)}%</td>
-      <td class="best" style="font-size:14px">+${f(s.effPerWild, 4)}% / 장</td>
+      <td style="font-weight:600">+${f(s.totalGain, 3)}%</td>
+      <td>
+        <div class="eff-cell">
+          <span class="best" style="font-size:13.5px">+${f(s.effPerWild, 4)}% / 장</span>
+          <div class="eff-bar-bg"><div class="eff-bar-fill" style="width:${pctBar.toFixed(1)}%"></div></div>
+        </div>
+      </td>
     </tr>`;
   });
 
   $("tb").innerHTML = h;
-  $("sum").innerHTML = `<span>단계별 와일드 카드 효율 순위표 (총 ${steps.length}개 레벨업 구간 정렬됨)</span>`;
+  const rLabel = activeRarity > 0 ? `${RN[activeRarity-1]} 등급 ` : "전체 ";
+  $("sum").innerHTML = `<span class="sum-left"><span class="sum-tag">STEP 3</span> <span>${rLabel}와일드 카드 투자 효율 순위표 (총 ${steps.length}개 구간)</span></span>`;
 
   // Top 3 KPI summary
+  const medals = ["🥇 추천 1순위","🥈 추천 2순위","🥉 추천 3순위"];
   const top3 = steps.slice(0, 3);
   $("kpiStrip").innerHTML = top3.map((s, idx) => `
     <div class="kpi-card">
-      <div class="kpi-label">전체 ${idx+1}순위 (${RN[s.x.r-1]} ${s.x.t===0?"아티팩트":"스펠"})</div>
-      <div class="kpi-val">${s.x.n} (${s.fromLv}→${s.toLv}렙)</div>
-      <div style="font-size:12px;color:var(--mute);margin-top:2px">와카 1장당 <b>+${f(s.effPerWild,4)}%</b> (총 +${f(s.totalGain,3)}% / ${s.needWild}장)</div>
+      <div class="kpi-label">${medals[idx]} · ${RN[s.x.r-1]} ${s.x.t===0?"아티팩트":"스펠"}</div>
+      <div class="kpi-val">${s.x.n} <span class="lv-pill">${s.fromLv} → ${s.toLv} Lv</span></div>
+      <div style="font-size:12.5px;color:var(--mute);margin-top:4px">와카 1장당 <b style="color:var(--ink)">+${f(s.effPerWild,4)}%</b> <span style="opacity:.85">(총 +${f(s.totalGain,3)}% / 와카 ${s.needWild}장)</span></div>
     </div>
   `).join("");
 }
@@ -875,7 +1133,12 @@ const apName = id => (APX[id]||{}).n || "?";
 const IMG = {};   // 파일로 불러온 이미지 {파일명: objectURL}
 const imgTpl = () => { try{ return localStorage.getItem("imgTpl") || "img/{id}.png"; }catch(e){ return "img/{id}.png"; } };
 function imgSrc(id){
-  return `img/${id}.png`;
+  const n = apName(id);
+  for(const ext of [".png",".webp",".jpg",".jpeg",".gif"]){
+    if(IMG[id+ext]) return IMG[id+ext];
+    if(IMG[n+ext]) return IMG[n+ext];
+  }
+  return imgTpl().replace(/\{id\}/g, id).replace(/\{name\}/g, encodeURIComponent(n));
 }
 function avatar(id,cls){
   const a = APX[id]||{c:"888888",n:"?"};
@@ -973,7 +1236,27 @@ drawLoadout = function(){
     ex.innerHTML = `<select class="a-swap" title="사도 교체">${apOptions("")}</select>${pr}`; ex.querySelector(".a-swap").value = a.id;
     head.after(ex);
   });
+  const pp = $("partyPreview");
+  if(pp){
+    const cols = [["back","후열","pp-back"],["mid","중열","pp-mid"],["front","전열","pp-front"]];
+    pp.innerHTML = cols.map(([rk,label,cls]) => {
+      const mem = APOS.filter(a => a.row === rk);
+      const sum = mem.reduce((s,a) => s + a.share, 0);
+      return `<div class="pp-col ${cls}">
+        <div class="pp-col-label">${label}<br><span style="font-size:10px;font-weight:600;opacity:.85">${f(sum,0)}%</span></div>
+        <div class="pp-list">${mem.map(a => {
+          const eqNames = a.slots.map(sid => (R.find(x=>x.id===sid)||{}).n || "비어 있음").join(" / ");
+          return `<div class="pp-item" title="${a.n} (${label}) · 딜 비중 ${f(a.share,1)}%&#10;장착: ${eqNames}">
+            ${avatar(a.id,"pp-av")}
+            <span class="pp-name">${a.n}</span>
+            <span class="pp-share">${f(a.share,1)}%</span>
+          </div>`;
+        }).join("")}</div>
+      </div>`;
+    }).join("");
+  }
 };
+drawLoadout();
 $("loadoutGrid").addEventListener("change", e => {
   const t = e.target, box = t.closest(".apos"); if(!box) return;
   const a = APOS.find(x=>x.k===box.dataset.k); if(!a) return;
@@ -993,5 +1276,21 @@ function drawEq(){
     return `<tr><td><span class="badge r${x.r}">${RN[x.r-1]}</span> <b>${x.n}</b>${x.t?` <span class="tag">스펠</span>`:""}${NOSTACK.has(x.id)?` <span class="tag">중첩불가</span>`:""}<div class="sub">코스트 ${x.costs?x.costs[11]??x.costs[0]:"-"}</div></td><td style="white-space:pre-line">${z.e||"-"}</td><td>${z.s||x.lab.join(", ")}</td><td>${w||"-"}</td></tr>`; }).join("");
 }
 ["eqQ","eqT","eqR"].forEach(i => $(i).addEventListener("input",drawEq)); $("eqBox").addEventListener("toggle",drawEq);
+(function(){
+  const root = document.documentElement, btn = $("themeBtn");
+  const applyTheme = t => {
+    if(t === "dark" || t === "light") root.setAttribute("data-theme", t);
+    else root.removeAttribute("data-theme");
+    const isDark = root.getAttribute("data-theme") === "dark" || (!root.getAttribute("data-theme") && window.matchMedia && window.matchMedia("(prefers-color-scheme:dark)").matches);
+    if(btn) btn.textContent = isDark ? "☀️ 라이트 모드" : "🌙 다크 모드";
+  };
+  try{ applyTheme(localStorage.getItem("themePref")); }catch(e){ applyTheme(null); }
+  if(btn) btn.onclick = () => {
+    const isDark = root.getAttribute("data-theme") === "dark" || (!root.getAttribute("data-theme") && window.matchMedia && window.matchMedia("(prefers-color-scheme:dark)").matches);
+    const next = isDark ? "light" : "dark";
+    try{ localStorage.setItem("themePref", next); }catch(e){}
+    applyTheme(next);
+  };
+})();
 loadImgs().then(()=>{ drawLoadout(); refreshAp(String(APOS.find(a=>a.k==="erpin").id)); });
 </script></body></html>
