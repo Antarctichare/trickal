@@ -1,1 +1,198 @@
-{}
+{
+ "10001": {
+  "name": "다야",
+  "file": "Daya"
+ },
+ "10002": {
+  "name": "이프리트",
+  "file": "Ifrit"
+ },
+ "10005": {
+  "name": "나이아",
+  "file": "Naia"
+ },
+ "10006": {
+  "name": "네르",
+  "file": "Ner"
+ },
+ "10007": {
+  "name": "림",
+  "file": "Rim"
+ },
+ "10008": {
+  "name": "스피키",
+  "file": "Speaki"
+ },
+ "10010": {
+  "name": "벨벳",
+  "file": "Velvet"
+ },
+ "10012": {
+  "name": "제이드",
+  "file": "Jade"
+ },
+ "10013": {
+  "name": "앨리스",
+  "file": "Alice"
+ },
+ "10014": {
+  "name": "아멜리아",
+  "file": "Amelia"
+ },
+ "10015": {
+  "name": "벨리타",
+  "file": "Belita"
+ },
+ "10016": {
+  "name": "에르핀",
+  "file": "Erpin"
+ },
+ "10019": {
+  "name": "엘레나",
+  "file": "Elena"
+ },
+ "10022": {
+  "name": "루드",
+  "file": "Rude"
+ },
+ "10023": {
+  "name": "셰이디",
+  "file": "Shady"
+ },
+ "10024": {
+  "name": "디아나",
+  "file": "Diana"
+ },
+ "10026": {
+  "name": "칸나",
+  "file": "Canna"
+ },
+ "10029": {
+  "name": "버터",
+  "file": "Butter"
+ },
+ "10032": {
+  "name": "마리",
+  "file": "Marie"
+ },
+ "10033": {
+  "name": "멜루나",
+  "file": "Meluna"
+ },
+ "10036": {
+  "name": "쥬비",
+  "file": "Jubee"
+ },
+ "10039": {
+  "name": "마요",
+  "file": "Mayo"
+ },
+ "10041": {
+  "name": "티그",
+  "file": "Tig"
+ },
+ "10043": {
+  "name": "타이다",
+  "file": "Taida"
+ },
+ "10044": {
+  "name": "레이지",
+  "file": "Lazy"
+ },
+ "10045": {
+  "name": "사리",
+  "file": "Sari"
+ },
+ "10050": {
+  "name": "유미미",
+  "file": "Yumimi"
+ },
+ "10056": {
+  "name": "클로에",
+  "file": "Chloe"
+ },
+ "10057": {
+  "name": "아야",
+  "file": "Aya"
+ },
+ "10058": {
+  "name": "우이",
+  "file": "Ui"
+ },
+ "10061": {
+  "name": "비비",
+  "file": "Vivi"
+ },
+ "10062": {
+  "name": "힐데",
+  "file": "Hilde"
+ },
+ "10064": {
+  "name": "에피카",
+  "file": "Epica"
+ },
+ "10066": {
+  "name": "피코라",
+  "file": "Picora"
+ },
+ "10072": {
+  "name": "바나",
+  "file": "Bana"
+ },
+ "10074": {
+  "name": "코미(수영복)",
+  "file": "Kommy"
+ },
+ "10078": {
+  "name": "모모",
+  "file": "Momo"
+ },
+ "10080": {
+  "name": "바리에",
+  "file": "Barie"
+ },
+ "10082": {
+  "name": "피라",
+  "file": "Pira"
+ },
+ "10088": {
+  "name": "스피키(메이드)",
+  "file": "SpeakiMaid"
+ },
+ "10090": {
+  "name": "오팔",
+  "file": "Opal"
+ },
+ "10091": {
+  "name": "란",
+  "file": "Ran"
+ },
+ "10093": {
+  "name": "림(혼돈)",
+  "file": "RimChaos"
+ },
+ "10095": {
+  "name": "샤샤",
+  "file": "Shasha"
+ },
+ "10097": {
+  "name": "라이카",
+  "file": "Laika"
+ },
+ "10101": {
+  "name": "마요(멋짐)",
+  "file": "MayoCool"
+ },
+ "10103": {
+  "name": "디아나(왕년)",
+  "file": "DianaYester"
+ },
+ "10104": {
+  "name": "아르코",
+  "file": "Arco"
+ },
+ "10108": {
+  "name": "마카샤",
+  "file": "Makasha"
+ }
+}
