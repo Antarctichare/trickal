@@ -423,6 +423,7 @@ h3.sec{font-size:14px;margin:16px 0 8px;display:flex;align-items:center;gap:8px;
     <div class="scroll"><table id="bf"></table></div>
     <div style="margin-top:8px"><button type="button" id="addb">버프 추가</button></div>
     <p class="note" style="margin-top:10px">· <b>체크박스</b>를 해제하면 해당 버프를 계산에서 제외하며, 사도를 교체하면 해당 사도의 어사이드·스킬 버프로 자동 갱신됩니다. (<b>[참고]</b> 행은 에르핀(왕도)에게 적용되지 않는 본인 전용 버프입니다.)<br>
+    · <b>물리/마법 공격력은 분리 계산</b>합니다. 마법 공격력 카드는 마법 사도(딜 비중 합)에만, 물리 공격력 카드는 물리 사도에만 반영되며, 물리 쪽 가치는 위 '물리 딜러 기준' 스탯으로 따로 계산합니다. (치명타·치명 피해·버프 표는 두 타입 공통)<br>
     · <b>공격 속도(%) 및 방어력 스탯은 딜 계산에 반영하지 않습니다</b> (기본 가중치 0). 따라서 공격 속도 위주 아티팩트·스펠은 실제 체감보다 순위가 낮게 표시될 수 있습니다.</p>
     <p class="note" id="wt" style="margin-top:8px;font-weight:700;color:var(--acc)"></p>
     <div class="g" id="wm" style="margin-top:8px"></div>
@@ -497,6 +498,8 @@ const QF = [
   ["cp","치명타 버프 합 (%)",0],
   ["dp","치명 피해 버프 합 (%)",0],
   ["D","적 마법 방어력",1000000],
+  ["PA","물리 공격력 (스탯창)",2002531],
+  ["PD","적 물리 방어력",1000000],
   ["res","적 치명타 저항",300000],
   ["rd","적 치명 피해 저항",300000],
   ["debuff","적 디버프 유지율 (%) — 다이아몬드 커터용",100],
@@ -506,13 +509,14 @@ const QF = [
 const QG = [
   ["딜러 스탯 — 에르핀(왕도) 스탯창", ["A","k","crit","dmg"]],
   ["스킬 비중 (나머지는 평타)", ["lowShare","highShare"]],
+  ["물리 딜러 기준 — 우로스·리뉴아·죠안 등 물리 공격 사도 (물리 공격력 가치 계산용)", ["PA","PD"]],
   ["적 스탯", ["D","res","rd","debuff"]],
   ["표 외 수동 추가분 (A·B 표의 효과는 자동 합산되므로 기본 0)", ["m","ap","cp","dp"]]
 ];
 $("qin").innerHTML = QG.map(g => `<div class="qgrp"><div class="qt">${g[0]}</div><div class="qg">` +
   g[1].map(k => { const q = QF.find(x => x[0]===k); return `<label>${q[1]}<input type="number" step="any" id="q${q[0]}" value="${q[2]}"></label>`; }).join("") + `</div></div>`).join("");
 
-$("wm").innerHTML = ["HP","물리 공격력","물리 방어력","마법 방어력","치명타 저항","치명 피해 저항"].map(l=>`<label>${l} 가중치 (직접 입력)<input type="number" step="any" class="wl" data-l="${l}" value="0"></label>`).join("");
+$("wm").innerHTML = ["HP","물리 방어력","마법 방어력","치명타 저항","치명 피해 저항"].map(l=>`<label>${l} 가중치 (직접 입력)<input type="number" step="any" class="wl" data-l="${l}" value="0"></label>`).join("");
 
 // A. 어사이드 기본 효과 [이름, 종류, 수치, 적용]
 let BASE = [
@@ -617,6 +621,10 @@ const prof = a => a.k === "erpin"
   : {low:a.low, high:a.high, norm:Math.max(0, 1-a.low-a.high)};
 const sumShare = fn => APOS.reduce((s,a)=> s + a.share*fn(prof(a)), 0);
 const rowSum = (row, fn) => APOS.filter(a=>a.row===row).reduce((s,a)=> s + a.share*fn(prof(a)), 0);
+// 사도 공격 타입: APX.at===1 물리, 그 외(2) 마법. 마공 카드는 마법 사도에게만, 물공 카드는 물리 사도에게만 효과가 있음
+const atkType = a => { let x; try{ x = APX[a.id]; }catch(e){} return (x && x.at === 1) ? 1 : 2; };   // APX는 스크립트 뒤쪽에서 선언되므로 초기 렌더 대비
+const lblShare = (l,a) => l==="마법 공격력" ? (atkType(a)===2 ? a.share : 0) : l==="물리 공격력" ? (atkType(a)===1 ? a.share : 0) : a.share;
+const typeShare = t => APOS.reduce((s,a)=> s + (atkType(a)===t ? a.share : 0), 0);
 const wearers = id => APOS.map(a=>({a, c:a.slots.filter(s=>s===id).length})).filter(w=>w.c>0);
 
 function calcW(){
@@ -649,6 +657,10 @@ function calcW(){
   const Y = calcT(p,B);
   const mg = k => (calcT({...p,[k]:p[k]+1},B)/Y - 1)*100;
   W["마법 공격력"] = mg("ap");
+  {  // 물리 공격력: 물리 딜러 기준(PA·PD)으로 따로 계산 — 마공과 분리
+    const pp = {...p, A:p.PA, D:p.PD}, Yp = calcT(pp,B);
+    W["물리 공격력"] = Yp > 0 ? (calcT({...pp, ap:pp.ap+1},B)/Yp - 1)*100 : 0;
+  }
   W["치명타"] = mg("cp");
   W["치명 피해"] = mg("dp");
   W["피해량 증가"] = mg("m");
@@ -656,7 +668,7 @@ function calcW(){
   document.querySelectorAll(".wl").forEach(e => W[e.dataset.l] = +e.value || 0);
 
   $("wt").textContent = "스탯/버프 +1%p당 최종 피해량 증가율: " +
-    ["마법 공격력","치명타","치명 피해","피해량 증가"].map(l => l+" +"+f(W[l],3)+"%").join(" · ") + " · 공격 속도·방어력은 계산 안 함(가중치 0)";
+    ["마법 공격력","물리 공격력","치명타","치명 피해","피해량 증가"].map(l => l+" +"+f(W[l],3)+"%").join(" · ") + " · 공격 속도·방어력은 계산 안 함(가중치 0)";
 }
 
 // 카드 객체 (장비는 전 아티팩트 선택 가능, 실제 계산은 '착용 중'인 카드만)
@@ -748,7 +760,7 @@ function drawCardLvGrid(){
 function stepGainDetail(x, lv){
   const effMode = +$("effMode").value === 1;
   const g6 = +$("grade6Cnt").value || 0;
-  const wAtk = W["마법 공격력"] || 0;
+  const wAtk = W["마법 공격력"] || 0, wAtkP = W["물리 공격력"] || 0;
   const wDmg = W["피해량 증가"] || 0;
   const wSpd = 0;   // 공속 가치 0 (계산 제외)
 
@@ -772,7 +784,7 @@ function stepGainDetail(x, lv){
     x.lab.forEach((l, j) => {
       const dv = x.v[j][lv] - x.v[j][lv-1];
       statDescParts.push(`${l} +${f(dv,2)}%p${cT>1?`(×${cT})`:""}`);
-      statGain += (W[l] || 0) * dv * (sumC(a => a.share) / 100);
+      statGain += (W[l] || 0) * dv * (sumC(a => lblShare(l,a)) / 100);
     });
 
     switch(x.id){
@@ -877,7 +889,7 @@ function stepGainDetail(x, lv){
     x.lab.forEach((l, j) => {
       const dv = x.v[j][lv] - x.v[j][lv-1];
       statDescParts.push(`${l} +${f(dv,2)}%p${cnt>1?`(×${cnt})`:""}`);
-      statGain += (W[l] || 0) * dv * cnt * (TOTAL / 100);
+      statGain += (W[l] || 0) * dv * cnt * (APOS.reduce((s,a)=>s+lblShare(l,a),0) / 100);
     });
 
     const partySkillShare = sumShare(p => p.low + p.high);
@@ -889,7 +901,7 @@ function stepGainDetail(x, lv){
         const totalAtk = dv * g6 * cnt;
         const base = x.eff["0"] ? x.eff["0"][lv-1] : 0, dBase = dEff("0");   // 기본 효과: 편성 사도 수 × 피해량 증가 (레벨 무관 고정값)
         effDesc = `기본: 편성 ${APOS.length}명×${f(base,0)}%p = 전체 피증 +${f(base*APOS.length*cnt,0)}%p(레벨 무관) · 추가: 6학년(${g6}명) 전원 공 +${f(totalAtk,2)}%p (사도당 +${f(dv,2)}%p)`;
-        effGain = totalAtk * wAtk * (TOTAL / 100) + (dBase * APOS.length * cnt) * wDmg * (TOTAL / 100);
+        effGain = totalAtk * (wAtk * typeShare(2) + wAtkP * typeShare(1)) / 100 + (dBase * APOS.length * cnt) * wDmg * (TOTAL / 100);
         break;
       }
       case 2200043: { // 전술 교본
@@ -1293,4 +1305,5 @@ function drawEq(){
   };
 })();
 loadImgs().then(()=>{ drawLoadout(); refreshAp(String(APOS.find(a=>a.k==="erpin").id)); });
+render();   // APX(사도 공격 타입) 로드 후 최종 재계산
 </script></body></html>
