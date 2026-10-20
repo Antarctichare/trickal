@@ -8,8 +8,6 @@ if (!fs.existsSync(dataPath)) {
 
 const rawData = JSON.parse(fs.readFileSync(dataPath, "utf8"));
 
-// note_data.json 내부에서 heroInfo 객체 위치를 정확히 찾아냅니다.
-// 구조: rawData -> data -> data -> heroInfo
 let heroInfo = null;
 if (rawData.data && rawData.data.data && rawData.data.data.heroInfo) {
   heroInfo = rawData.data.data.heroInfo;
@@ -31,9 +29,14 @@ const UA = {
 };
 
 async function downloadImages() {
+  // ★ 기존 img 폴더가 있다면 통째로 삭제 후 깨끗하게 재생성 (찌꺼기 파일 방지)
+  if (fs.existsSync("img")) {
+    fs.rmSync("img", { recursive: true, force: true });
+    console.log("🧹 기존 img 폴더를 깨끗하게 비웠습니다.");
+  }
   fs.mkdirSync("img", { recursive: true });
-  let success = 0, fail = 0;
 
+  let success = 0, fail = 0;
   console.log("🚀 공식 CDN에서 사도 이미지 다운로드 시작...");
 
   for (const [id, info] of Object.entries(heroInfo)) {
@@ -46,23 +49,22 @@ async function downloadImages() {
       const res = await fetch(url, UA);
       if (res.ok) {
         const buffer = Buffer.from(await res.arrayBuffer());
-        fs.writeFileSync(`img/${id}.webp`, buffer);
-        console.log(`✅ [성공] 사도 ID ${id} -> ${iconHash}.webp`);
+        fs.writeFileSync(`img/${id}.png`, buffer);
+        console.log(`✅ [성공] 사도 ID ${id} -> img/${id}.png`);
         success++;
       } else {
-        console.log(`❌ [실패] 사도 ID ${id} - HTTP 상태코드: ${res.status}`);
+        console.log(`❌ [실패] 사도 ID ${id} - 상태 코드: ${res.status}`);
         fail++;
       }
     } catch (e) {
-      console.log(`⚠️ [에러] 사도 ID ${id} 요청 중 예외 발생:`, e.message);
+      console.log(`⚠️ [에러] 사도 ID ${id} 예외 발생:`, e.message);
       fail++;
     }
 
-    // 서버 부하 방지용 짧은 딜레이
     await new Promise(r => setTimeout(r, 20));
   }
 
-  console.log(`\n🎉 다운로드 완료! 성공: ${success}개 / 실패: ${fail}개`);
+  console.log(`\n🎉 완료! 성공: ${success}개 / 실패: ${fail}개`);
 }
 
 downloadImages();
