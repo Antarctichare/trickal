@@ -1,6 +1,4 @@
 // 사도 이미지 1회 다운로드: https://tr.triple-lab.com/charas/{영문이름}.png → img/{사도번호}.png
-// 영문 이름은 사이트 번들(js/json)에서 한국어 이름 근처의 문자열을 찾아 실제 다운로드로 검증합니다.
-// 못 찾은 사도는 tools/names.json 에 {"사도번호":"영문이름"} 으로 직접 적으면 다음 실행에서 우선 사용됩니다.
 import fs from "node:fs";
 const BASE = process.env.BASE || "https://tr.triple-lab.com";
 const UA = { headers: { "user-agent": "Mozilla/5.0" } };
@@ -11,6 +9,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const text = async u => { try { const r = await fetch(u, UA); return r.ok ? await r.text() : ""; } catch { return ""; } };
 const img = async u => { try { const r = await fetch(u, UA); return r.ok && (r.headers.get("content-type") || "").startsWith("image/") ? Buffer.from(await r.arrayBuffer()) : null; } catch { return null; } };
+
+// 대소문자 변형 조합 생성기 (원본, 소문자, 대문자, 첫글자 대문자)
+const getVariants = (str) => {
+  if (!str) return [];
+  const s = String(str).trim();
+  return [...new Set([
+    s,
+    s.toLowerCase(),
+    s.toUpperCase(),
+    s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+  ])];
+};
 
 // 1) 사이트의 js/json 파일 수집
 const files = new Map(), queue = [BASE + "/"];
@@ -24,12 +34,15 @@ while (queue.length && files.size < 60) {
 const all = [...files.values()].join("\n");
 console.log(`수집한 파일 ${files.size}개, ${(all.length / 1024) | 0}KB`);
 
-// 2) 사도별로 영문 이름 후보 → 실제 다운로드로 검증
+// 2) 사도별로 영문 이름 후보 → 대소문자 변형을 포함하여 실제 다운로드 검증
 fs.mkdirSync("img", { recursive: true });
 const found = {}, miss = [];
+
 for (const a of apos) {
   const id = String(a.id), full = a.name, variant = /\(/.test(full);
-  let cands = manual[id] ? [manual[id]] : [];
+  
+  let cands = manual[id] ? [String(manual[id]).trim()] : [];
+  
   if (!cands.length) {
     const re = new RegExp(esc(full) + (variant ? "" : "(?!\\()"), "g"), list = [];
     for (const m of all.matchAll(re)) {
@@ -40,13 +53,38 @@ for (const a of apos) {
     list.sort((x, y) => x.d - y.d);
     cands = [...new Set(list.map(x => x.n))].slice(0, 25);
   }
+
   let ok = null;
   for (const n of cands) {
-    const b = await img(`${BASE}/charas/${n}.png`); await sleep(40);
-    if (b) { fs.writeFileSync(`img/${id}.png`, b); ok = n; break; }
+    // 후보 이름에 대한 대소문자 변형 목록 생성 (예: Daya, daya, DAYA 등)
+    const variants = getVariants(n);
+    let matchedVariant = null;
+
+    for (const v of variants) {
+      const b = await img(`${BASE}/charas/${v}.png`); 
+      await sleep(30);
+      if (b) { 
+        fs.writeFileSync(`img/${id}.png`, b); 
+        matchedVariant = v; 
+        break; 
+      }
+    }
+
+    if (matchedVariant) {
+      ok = matchedVariant;
+      console.log(`[성공] ID ${id} (${full}) -> ${matchedVariant}.png`);
+      break;
+    }
   }
-  if (ok) found[id] = { name: full, file: ok }; else miss.push({ id: a.id, name: full });
+
+  if (ok) {
+    found[id] = { name: full, file: ok }; 
+  } else {
+    miss.push({ id: a.id, name: full });
+    console.log(`[실패] ID ${id} (${full})`);
+  }
 }
+
 const byFile = {}; Object.entries(found).forEach(([id, v]) => (byFile[v.file] ||= []).push(`${id} ${v.name}`));
 const dup = Object.entries(byFile).filter(([, L]) => L.length > 1);
 fs.writeFileSync("tools/names.found.json", JSON.stringify(found, null, 1));
