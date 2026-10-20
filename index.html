@@ -201,7 +201,7 @@ td input[type=number]{width:62px;padding:4px 6px;text-align:right}
 .col-front .col-title{color:var(--front)}
 .apos{background:var(--card-sub);border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-top:8px}
 .col-title + .apos{margin-top:0}
-.apos-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.apos-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;min-width:0}.apos-head>b{min-width:0;overflow-wrap:anywhere}.apos-head .sh{flex-wrap:wrap;min-width:0}.apos .a-slot{display:block;max-width:100%;line-height:1.35}
 .apos-head b{font-size:13.5px}
 .apos-head select{width:auto;padding:2px 6px;font-size:12px}
 .apos-head .sh{margin-left:auto;flex-direction:row;align-items:center;gap:4px;font-size:12px;font-weight:600}
@@ -233,7 +233,7 @@ h3.sec{font-size:14px;margin:16px 0 8px;display:flex;align-items:center;gap:8px;
 .lv-pill{display:inline-block;padding:2px 7px;border-radius:5px;background:var(--acc-soft);color:var(--acc);font-weight:700;font-size:12px;margin-left:4px}
 
 /* 개별 카드 레벨 그리드 */
-.card-lv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:7px 10px;margin-top:10px}
+.card-lv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:8px 10px;margin-top:10px}.card-lv-item{min-width:0}.card-lv-item>span:first-child{min-width:0;flex:1}.card-lv-item>span:last-child{flex:none}.card-lv-item input{width:58px;flex:none}.card-lv-item select{width:70px;flex:none}
 .card-lv-item{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--card-sub);border:1px solid var(--line);border-radius:7px;padding:5px 9px;font-size:12.5px}
 .card-lv-item input{width:54px;text-align:right;padding:3px 5px;font-weight:700}
 .card-lv-item select{width:76px;padding:3px 5px;font-size:12px}
@@ -401,7 +401,7 @@ h3.sec{font-size:14px;margin:16px 0 8px;display:flex;align-items:center;gap:8px;
       <button type="button" class="lv-preset-btn" data-lv="2">전체 시작 2렙으로 초기화</button>
       <button type="button" class="lv-preset-btn" data-lv="3">전체 시작 3렙으로 초기화</button>
     </div>
-    <div class="card-lv-grid" id="cardLvGrid"></div>
+    <label style="display:flex;flex-direction:row;align-items:center;gap:8px;margin-top:12px">카드 정렬<select id="cardLvSort" style="width:auto;min-width:150px"><option value="cost">코스트순 (낮은 순)</option><option value="name">가나다순</option></select></label><div class="card-lv-grid" id="cardLvGrid"></div>
   </div>
 </details>
 
@@ -721,7 +721,13 @@ $("resetLoadout").onclick = () => { APOS = cloneApos(); drawLoadout(); drawCardL
 
 // 카드별 시작 레벨 & 스펠 구매 장수 설정 그리드
 function drawCardLvGrid(){
-  const relCards = R.filter(x => (x.t === 0 && isWorn(x)) || x.t === 1);
+  const sortMode = $("cardLvSort")?.value || "cost";
+  const relCards = R.filter(x => (x.t === 0 && isWorn(x)) || x.t === 1).sort((a,b) => {
+    if(sortMode === "name") return a.n.localeCompare(b.n,"ko");
+    const ac = Array.isArray(a.costs) ? (+a.costs[11] || +a.costs[0] || 0) : (+a.cost || 0);
+    const bc = Array.isArray(b.costs) ? (+b.costs[11] || +b.costs[0] || 0) : (+b.cost || 0);
+    return ac-bc || a.n.localeCompare(b.n,"ko");
+  });
   $("cardLvGrid").innerHTML = relCards.map(x => {
     const mx = maxCopies(x.id);
     return `
@@ -755,6 +761,8 @@ function drawCardLvGrid(){
     };
   });
 }
+
+$("cardLvSort").addEventListener("change", drawCardLvGrid);
 
 // 카드 x의 lv → lv+1 단계 스탯 + 특수효과 증가분 (lv: 1..11)
 function stepGainDetail(x, lv){
@@ -1173,7 +1181,7 @@ function showAp(id){
   const a = APX[id]; if(!a){ $("apView").innerHTML = ""; return; }
   const p = APOS.find(x=>x.id==id), mx = Math.max(...a.g,1);
   const g = [["공격",a.g[0]],["방어",a.g[1]],["지원",a.g[2]]].map(([l,v])=>`<div class="gb"><span style="width:28px">${l}</span><i style="width:${v/mx*120}px"></i>${v}</div>`).join("");
-  const o = a.o ? `<span class="tag">Lv ${a.o[0]}</span><span class="tag">랭크 ${a.o[1]}</span><span class="tag">등급 ${a.o[2]}</span><span class="tag">어사이드 A${a.o[3]}</span>` : `<span class="tag">미보유</span>`;
+  const o = "";
   const eq = p ? p.slots.map(s=>{ const c = R.find(x=>x.id===s); return s ? `<div class="sk"><b>${c?c.n:s}</b>\n${(ARX[s]||{}).e||""}</div>` : ""; }).join("") : `<div class="note">편성에 없는 사도입니다. 위의 '배치'로 슬롯에 넣으면 장비·딜 비중을 지정할 수 있습니다.</div>`;
   $("apView").innerHTML = `<div>${avatar(id)}<div style="margin-top:8px">${g}</div><label class="note" style="display:block;margin-top:8px">이 사도 이미지 지정<input type="file" id="apOne" accept="image/*"></label></div>
    <div><h3 style="margin:0 0 2px;font-size:18px">${a.n} <span class="sub" style="font-size:13px">${a.t}</span></h3>
