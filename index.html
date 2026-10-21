@@ -573,7 +573,7 @@ let BASE = [
 ];
 // B. 인게임 버프 [이름, 종류, 수치, 지속(초), 쿨타임(0=상시), 첫 발동(초), 적용]
 let BF = [
-  ["우로스 저학년 순환 지배의 영역: 공격력 부여 35% (영역 위 최고 공격력 아군 기준, 최고 공격력 본인도 받음 → 에르핀 가정 · 저학년은 SP 회복 세팅으로 무한 난사 → 상시)","atk",35,10,0,0,true],
+  ["우로스 저학년 순환 지배의 영역: 공격력 부여 35% (영역 위 최고 공격력 아군 기준, 최고 공격력 본인도 받음 → 에르핀 가정 · 저학년은 SP 회복 세팅으로 무한 난사 → 상시 · 독립 곱연산)","mult_atk",35,10,0,0,true],
   ["[참고] 우로스 영역 종료 후 자신 피해량 +62% (Lv13, 10초) — 우로스 한정","m",62,10,0,0,false],
   ["죠안 A2 꿈결 형상(전열 배치): 모든 아군 주는 피해량 +75%×2 = +150% (20초/쿨 42초 · 중열이면 받피 감소, 후열이면 공속으로 바뀜)","m",150,20,42,0,true],
   ["에르핀(왕도) 고학년 에르피엔 펀치: 스킬 피해량 +67.5% (본인 · 25초 / 쿨 60초) — 에르핀은 고학년 미사용이라 꺼 둠","sk",67.5,25,60,0,false],
@@ -586,7 +586,7 @@ let BF = [
   ["실비아 저학년 궁극의 유희: 적 받는 피해 증가 +80% (Lv13 · 30초 · 저학년 무한 난사 → 상시)","m",80,30,0,0,true],
   ["우이(기억) 고학년 일렁이는 파동: 적이 받는 고학년 스킬 피해 +35% (에르핀 고학년 0%라 효과 0) (연못 8초+파동 5초=13초 / 쿨 27초)","hk",35,13,27,0,true]
 ];
-const BT = [["m","피해량 증감 (%p)"],["atk","공격력 풀 (%)"],["crit","치명타 풀 (%)"],["cd","치명 피해 풀 (%)"],["holy","신성 치명 추가피해 (%)"],["sk","스킬 피해량 (%) — 저·고학년 스킬 비중만"],["hk","적 받는 고학년 스킬 피해 (%) — 고학년 비중만"]];
+const BT = [["m","피해량 증감 (%p)"],["atk","공격력 풀 (%) [합연산]"],["mult_atk","공격력 증폭 (%) [독립 곱연산]"],["crit","치명타 풀 (%)"],["cd","치명 피해 풀 (%)"],["holy","신성 치명 추가피해 (%)"],["sk","스킬 피해량 (%) — 저·고학년 스킬 비중만"],["hk","적 받는 고학년 스킬 피해 (%) — 고학년 비중만"]];
 const opt = (L,v) => L.map(t=>`<option value="${t[0]}" ${t[0]==v?"selected":""}>${t[1]}</option>`).join("");
 
 function drawB(){
@@ -630,7 +630,7 @@ function critM(d,r,cap4){
   return Math.min(4, Math.max(1.15, 4 - 1.5*x));
 }
 function calc(p){
-  const A = p.A*(1+p.ap/100), cr = p.crit*(1+p.cp/100), dd = p.dmg*(1+p.dp/100);
+  const A = p.A*(1+p.ap/100)*(1+(p.multAtk||0)/100), cr = p.crit*(1+p.cp/100), dd = p.dmg*(1+p.dp/100);
   const holy = (p.holy||0) > 0;
   const b = baseDmg(A,p.D,p.k), pc = critP(cr,p.res);
   const cm = critM(dd,p.rd,p.cap4);
@@ -650,6 +650,7 @@ function applyB(p,t,B){
     if(!(t>=b.f && (b.c<=0 || (t-b.f)%b.c < b.d))) return;
     if(b.t=="m") q.m += b.v;
     else if(b.t=="atk") q.ap += b.v;
+    else if(b.t=="mult_atk") q.multAtk = (q.multAtk||0) + b.v;
     else if(b.t=="crit") q.cp += b.v;
     else if(b.t=="cd") q.dp += b.v;
     else if(b.t=="holy") q.holy = (q.holy||0) + b.v;
@@ -682,6 +683,7 @@ function calcW(){
   const p = {};
   QF.forEach(q => p[q[0]] = +$("q"+q[0]).value || 0);
   p.holy = 0;
+  p.multAtk = 0;
   const skS = Math.max(0, Math.min(1, ((p.lowShare||0) + (p.highShare||0))/100));   // 스킬 피해량은 저·고학년 스킬 비중만큼만 반영
   const hkS = Math.max(0, Math.min(1, (p.highShare||0)/100));   // 고학년 스킬 피해 증가는 고학년 비중만 반영
   p.skS = skS;
@@ -701,7 +703,7 @@ function calcW(){
 
   // 표 A·B 효과의 180초 평균/최대 (수동 입력 칸은 제외한 순수 표 합계)
   {
-    const K = ["ap","cp","dp","m"], sum = {}, mx = {};
+    const K = ["ap","multAtk","cp","dp","m"], sum = {}, mx = {};
     let holySec = 0, holyMax = 0;
     K.forEach(k => { sum[k]=0; mx[k]=0; });
     for(let t=0;t<180;t++){
@@ -712,7 +714,7 @@ function calcW(){
     const basePc = critP(p.crit*(1+p.cp/100), p.res)*100;
     const baseCm = critM(p.dmg*(1+p.dp/100), p.rd, p.cap4);
     const sacredCm = 1 + (baseCm - 1)*(1 + (holyMax||40)/100);
-    const L = [["ap","공격력 버프"],["cp","치명타 버프"],["dp","치명 피해 버프"],["m","피해량 증감"]];
+    const L = [["ap","공격력 버프 (합연산)"],["multAtk","공격력 증폭 (독립 곱연산)"],["cp","치명타 버프"],["dp","치명 피해 버프"],["m","피해량 증감"]];
     $("bsum").innerHTML = L.map(([k,l]) => { const u = "%";
       return `<div class="kpi-card"><div class="kpi-label">${l}</div><div class="kpi-val">평균 +${f(sum[k]/180,1)}${u}</div><div class="kpi-label">최대 +${f(mx[k],1)}${u}</div></div>`; }).join("") +
       `<div class="kpi-card"><div class="kpi-label">신성(비비 A2) 가동률</div><div class="kpi-val">${f(holySec/180*100,1)}% (${holySec}초/180초)</div><div class="kpi-label">추가 피해 +${f(holyMax,0)}% · ${p.holyAll?"100% 신성치명":"치명 시 신성/비치명 시 일반"}</div></div>` +
@@ -720,10 +722,10 @@ function calcW(){
   }
   const Y = calcT(p,B);
   const mg = k => (calcT({...p,[k]:p[k]+1},B)/Y - 1)*100;
-  W["마법 공격력"] = mg("ap");
+  W["마법 공격력"] = (calcT({...p,A:p.A*1.01},B)/Y - 1)*100;
   {  // 물리 공격력: 물리 딜러 기준(PA·PD)으로 따로 계산 — 마공과 분리
     const pp = {...p, A:p.PA, D:p.PD}, Yp = calcT(pp,B);
-    W["물리 공격력"] = Yp > 0 ? (calcT({...pp, ap:pp.ap+1},B)/Yp - 1)*100 : 0;
+    W["물리 공격력"] = Yp > 0 ? (calcT({...pp, A:pp.A*1.01},B)/Yp - 1)*100 : 0;
   }
   W["치명타"] = mg("cp");
   W["치명 피해"] = mg("dp");
