@@ -114,38 +114,37 @@
     }
   }
 
-  function injectSyncUI() {
+function injectSyncUI() {
     if (document.getElementById("trickcalSyncBar")) return; // 중복 생성 방지
 
     const bar = document.createElement("div");
     bar.id = "trickcalSyncBar";
-    bar.style.cssText = "background:var(--card, #f8fafc);border:1px solid var(--line, #e2e8f0);border-radius:10px;padding:12px 16px;margin:12px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,0.05);z-index:9999;position:relative;";
+    // 스타일을 눈에 띄게 고정 (배경색 명시)
+    bar.style.cssText = "background:#ffffff; color:#0f172a; border:2px solid #3b82f6; border-radius:10px; padding:12px 16px; margin:16px auto; max-width:1200px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; font-size:13px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); z-index:99999; position:relative;";
     bar.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span id="syncStatusBadge" style="color:var(--mute, #64748b);">⚪ <b>기본 데이터 모드</b> (서버 저장 없이 브라우저에서만 작동합니다)</span>
+        <span id="syncStatusBadge" style="color:#64748b;">⚪ <b>기본 데이터 모드</b> (서버 저장 없이 브라우저에서만 작동합니다)</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button type="button" id="btnExtSync" style="cursor:pointer;padding:6px 12px;border-radius:6px;border:1px solid #3b82f6;background:#eff6ff;color:#1d4ed8;font-weight:600;">⚡ 확장프로그램에서 불러오기</button>
-        <button type="button" id="btnPasteSync" style="cursor:pointer;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:transparent;color:inherit;">📋 data 응답 직접 붙여넣기</button>
+        <button type="button" id="btnPasteSync" style="cursor:pointer;padding:6px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#f1f5f9;color:#0f172a;">📋 data 응답 직접 붙여넣기</button>
         <button type="button" id="btnResetSync" style="cursor:pointer;padding:6px 12px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;">🗑️ 내 데이터 초기화</button>
       </div>
       <div id="pasteModalBox" style="display:none;width:100%;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;">
         <div style="font-size:12px;margin-bottom:4px;opacity:0.85;">💡 F12 개발자 도구 → <b>Network</b> 탭 → <b>data</b> 요청의 <b>Response(응답)</b> 텍스트를 통째로 복사해 아래에 붙여넣으세요.</div>
-        <textarea id="rawDataInput" rows="4" placeholder='여기에 Network -> data 응답 JSON을 붙여넣으세요...' style="width:100%;box-sizing:border-box;font-family:monospace;font-size:12px;padding:6px;border-radius:6px;border:1px solid #cbd5e1;"></textarea>
+        <textarea id="rawDataInput" rows="4" placeholder='여기에 Network -> data 응답 JSON을 붙여넣으세요...' style="width:100%;box-sizing:border-box;font-family:monospace;font-size:12px;padding:6px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#000;"></textarea>
         <div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;">
           <button type="button" id="btnApplyRaw" style="cursor:pointer;padding:4px 12px;border-radius:6px;background:#2563eb;color:#fff;border:none;font-weight:600;">적용하기</button>
-          <button type="button" id="btnCloseRaw" style="cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;background:transparent;color:inherit;">닫기</button>
+          <button type="button" id="btnCloseRaw" style="cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;background:#f1f5f9;color:#0f172a;">닫기</button>
         </div>
       </div>
     `;
 
-    // 페이지의 가장 맨 위에 강제로 삽입
-    if (document.body) {
-      document.body.insertBefore(bar, document.body.firstChild);
-    } else {
-      document.documentElement.appendChild(bar);
-    }
+    // 💡 body 맨 위가 아니라, <main> 태그의 맨 처음에 안전하게 삽입!
+    const mainEl = document.querySelector("main") || document.body;
+    mainEl.insertBefore(bar, mainEl.firstChild);
 
+    // 버튼 이벤트 연결 코드들은 기존과 동일하게 유지...
     document.getElementById("btnExtSync").onclick = () => {
       window.postMessage({ type: "REQUEST_TRICKCAL_SYNC" }, "*");
     };
@@ -166,7 +165,7 @@
         document.getElementById("rawDataInput").value = "";
         document.getElementById("pasteModalBox").style.display = "none";
         alert(`✅ 연동 완료! (카드 ${cLen}종, 사도 ${aLen}명 반영됨)`);
-      } `catch` (err) {
+      } catch (err) {
         alert("올바른 JSON 형식이 아닙니다. Network -> data의 Response 전체를 복사했는지 확인해 주세요.");
       }
     };
@@ -175,7 +174,7 @@
       location.reload();
     };
   }
-
+  
   window.addEventListener("message", (e) => {
     if (e.source !== window || !e.data) return;
     if (e.data.type === "APPLY_TRICKCAL_SYNC") {
