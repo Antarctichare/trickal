@@ -573,12 +573,15 @@ function render(){
   steps.sort((a,b) => b.effPerWild - a.effPerWild || b.totalGain - a.totalGain || a.fromLv - b.fromLv);
 
   const maxEff = steps.length ? steps[0].effPerWild : 1;
+  // 순위 순서대로 와카 종류(등급)별 누적 소모량 계산
+  const runWild = {1:0,2:0,3:0,4:0};
+  steps.forEach(s => { runWild[s.x.r] += s.needWild; s.cum = Object.assign({}, runWild); });
   let h = `<tr>
     <th>순위</th>
     <th>카드명 · 강화 단계</th>
     <th>등급 · 분류</th>
     <th class="c-num">소모 와카</th>
-    <th class="c-num" title="Lv1에서 도착 레벨까지 쭉 강화했을 때 필요한 와일드 카드 총합">누적 소모 와카<br><span style="font-weight:400;font-size:11px">(Lv1 → 도착 Lv)</span></th>
+    <th class="c-num" title="1위부터 해당 순위까지 순서대로 모두 투자했을 때 필요한 와일드 카드 총합 (와카 종류별)">누적 소모 와카<br><span style="font-weight:400;font-size:11px">(1위 → 해당 순위)</span></th>
     <th class="c-num">단계 총 딜 증가</th>
     <th class="c-num">와카 1장당 효율</th>
     <th>적용 대상 (착용 사도 / 범위)</th>
@@ -594,7 +597,9 @@ function render(){
     const rCls = rank <= 3 ? "rank-badge rank-top3" : (rank <= 10 ? "rank-badge rank-top10" : "rank-badge");
     const costTag = s.gd.costDelta < 0 ? `<span class="tag-cost">코스트 ${s.gd.costDelta}</span>` : "";
     const effPart = s.gd.effDesc ? ` · <span style="color:var(--acc);font-weight:600">${s.gd.effDesc}</span>` : "";
-    const cumWild = BS[s.x.r - 1] * s.toLv * (s.toLv - 1) / 2; // Σ BS×L, L=1..toLv-1
+    const cumHtml = [4,3,2,1].filter(r => s.cum[r] > 0).map(r => r === s.x.r
+      ? `<div><span class="badge r${r}" style="padding:0 5px;font-size:11px">${RN[r-1]} 와카</span> <b>${s.cum[r].toLocaleString()}장</b></div>`
+      : `<div style="font-size:11px;color:var(--mute)">${RN[r-1]} 와카 ${s.cum[r].toLocaleString()}장</div>`).join("");
     const pctBar = Math.max(4, Math.min(100, (s.effPerWild / maxEff) * 100));
 
     h += `<tr>
@@ -602,7 +607,7 @@ function render(){
       <td class="c-name" data-label="카드"><b>${s.x.n}</b> <span class="lv-pill">${s.fromLv} → ${s.toLv} Lv</span>${costTag}</td>
       <td data-label="등급 · 분류"><span class="badge r${s.x.r}">${RN[s.x.r-1]} ${s.x.t===0?"아티팩트":"스펠"}</span></td>
       <td class="c-num" data-label="소모 와카"><b>${s.needWild}장</b></td>
-      <td class="c-num c-cum" data-label="누적 소모 와카" style="white-space:nowrap"><span class="badge r${s.x.r}" style="padding:0 5px;font-size:11px">${RN[s.x.r-1]} 와카</span> <b>${cumWild.toLocaleString()}장</b><div style="font-size:11px;color:var(--mute);margin-top:2px">Lv1→${s.toLv} 전체</div></td>
+      <td class="c-num c-cum" data-label="누적 소모 와카" style="white-space:nowrap">${cumHtml}</td>
       <td class="c-num" data-label="단계 총 딜 증가" style="font-weight:600">+${f(s.totalGain, 3)}%</td>
       <td class="c-num c-eff" data-label="와카 1장당 효율">
         <div class="eff-cell">
