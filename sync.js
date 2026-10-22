@@ -181,13 +181,14 @@
     };
     $("btnResetSync").onclick = () => {
       localStorage.removeItem("userSpecSync");
-      location.reload();
+      window.postMessage({ type: "CLEAR_TRICKCAL_SYNC" }, location.origin); // 확장 프로그램 저장분도 삭제
+      setTimeout(() => location.reload(), 200);
     };
   }
 
   // 확장 프로그램 메시지 수신
   window.addEventListener("message", (e) => {
-    if (e.source !== window || !e.data) return;
+    if (e.source !== window || e.origin !== location.origin || !e.data) return;
     if (e.data.type === "APPLY_TRICKCAL_SYNC") {
       applySpecToCalculator(e.data.payload, true);
       if (!e.data.auto) alert("✅ 확장 프로그램에서 트릭컬노트 데이터를 성공적으로 불러왔습니다!");
