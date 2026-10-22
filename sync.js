@@ -131,6 +131,7 @@
 
   // 상단 연동 UI 바 삽입
   function injectSyncUI() {
+    if (document.getElementById("syncStatusBadge")) return; // 중복 삽입 방지
     const bar = document.createElement("div");
     bar.style.cssText = "background:var(--card, #f8fafc);border:1px solid var(--line, #e2e8f0);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;font-size:13px;";
     bar.innerHTML = `
@@ -152,7 +153,8 @@
       </div>
     `;
 
-    const target = $("loadoutGrid") ? $("loadoutGrid").parentElement : document.body;
+    // 접혀 있는 <details> 안이 아니라 페이지 최상단(main)에 넣어 항상 보이게 한다
+    const target = document.querySelector("main") || document.body;
     target.prepend(bar);
 
     $("btnExtSync").onclick = () => {
@@ -197,15 +199,25 @@
     }
   });
 
-  // 초기 실행 및 localStorage 복원
-  injectSyncUI();
-  try {
-    const saved = localStorage.getItem("userSpecSync");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // 구버전(잘못된 사도 데이터) 저장본은 폐기
-      if (parsed && parsed.cardsDetail) applySpecToCalculator(parsed, false);
-      else localStorage.removeItem("userSpecSync");
+  // 초기 실행 및 localStorage 복원 (각 단계를 분리: 하나가 실패해도 불러오기 바는 표시)
+  function init() {
+    try {
+      injectSyncUI();
+    } catch (err) {
+      console.error("[트릭컬 연동기] 불러오기 바 삽입 실패:", err);
     }
-  } catch (e) {}
+    try {
+      const saved = localStorage.getItem("userSpecSync");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // 구버전(잘못된 사도 데이터) 저장본은 폐기
+        if (parsed && parsed.cardsDetail) applySpecToCalculator(parsed, false);
+        else localStorage.removeItem("userSpecSync");
+      }
+    } catch (err) {
+      console.error("[트릭컬 연동기] 저장된 데이터 복원 실패:", err);
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
