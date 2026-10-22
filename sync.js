@@ -2,6 +2,10 @@
 // [3] 외부 데이터(Network -> data) 연동 모듈 (sync.js)
 // ==========================================
 (function() {
+  // ▼ 확장 프로그램 배포 주소: 저장소에 올린 위치에 맞게 수정하세요 (구글 드라이브 등 외부 링크도 가능)
+  const EXT_ZIP_URL = "extension/trickcal-sync-v1.1.zip";
+  const EXT_PRIVACY_URL = "extension/PRIVACY.md";
+  let extWaitTimer = null; // 확장 프로그램 응답 대기 타이머
   // 사도/카드 한 건을 계산기 내부 형식 o = [레벨, 스킬, 등급, 어사이드]로 변환
   function toO(v) {
     if (Array.isArray(v)) {
@@ -140,8 +144,19 @@
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button type="button" id="btnExtSync" style="cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid #3b82f6;background:#eff6ff;color:#1d4ed8;font-weight:600;">⚡ 확장프로그램에서 불러오기</button>
+        <button type="button" id="btnExtGuide" style="cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid #cbd5e1;background:transparent;color:inherit;">🧩 설치 방법</button>
         <button type="button" id="btnPasteSync" style="cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid #cbd5e1;background:transparent;color:inherit;">📋 data 응답 직접 붙여넣기</button>
         <button type="button" id="btnResetSync" style="cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;">🗑️ 내 데이터 초기화</button>
+      </div>
+      <div id="extGuideBox" style="display:none;width:100%;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;font-size:12.5px;line-height:1.6;">
+        <div><a href="${EXT_ZIP_URL}" download><b>⬇ 확장 프로그램 다운로드 (zip)</b></a> · <a href="${EXT_PRIVACY_URL}" target="_blank" rel="noopener">개인정보·보안 안내</a></div>
+        <ol style="margin:6px 0 0 18px;padding:0;">
+          <li>zip을 받아 <b>압축을 풉니다.</b></li>
+          <li>Chrome 주소창에 <code>chrome://extensions</code> 입력 → 우측 상단 <b>개발자 모드</b> 켜기</li>
+          <li><b>압축해제된 확장 프로그램을 로드합니다</b> → 압축 푼 폴더 선택</li>
+          <li>트릭컬노트(note.trickcal.com)에 접속해 새로고침한 뒤, 이 페이지에서 <b>「⚡ 확장프로그램에서 불러오기」</b>를 누르세요.</li>
+        </ol>
+        <div style="margin-top:6px;opacity:0.8;">내 정보는 서버로 전송되지 않고 이 브라우저에만 저장됩니다.</div>
       </div>
       <div id="pasteModalBox" style="display:none;width:100%;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;">
         <div style="font-size:12px;margin-bottom:4px;opacity:0.85;">💡 F12 개발자 도구 → <b>Network</b> 탭 → <b>data</b> 요청의 <b>Response(응답)</b> 텍스트를 통째로 복사해 아래에 붙여넣으세요. (개인정보는 즉시 폐기되고 카드 레벨과 사도 수치만 추출됩니다.)</div>
@@ -157,8 +172,22 @@
     const target = document.querySelector("main") || document.body;
     target.prepend(bar);
 
+    $("btnExtGuide").onclick = () => {
+      const g = $("extGuideBox");
+      g.style.display = g.style.display === "none" ? "block" : "none";
+    };
     $("btnExtSync").onclick = () => {
-      window.postMessage({ type: "REQUEST_TRICKCAL_SYNC" }, "*");
+      clearTimeout(extWaitTimer);
+      // 1초 안에 확장 프로그램이 응답하지 않으면 미설치로 보고 설치 안내를 펼친다
+      extWaitTimer = setTimeout(() => {
+        $("extGuideBox").style.display = "block";
+        const st = $("syncStatusBadge");
+        if (st) {
+          st.innerHTML = "🔴 <b>확장 프로그램이 감지되지 않았습니다</b> — 아래 설치 방법을 따라 주세요.";
+          st.style.color = "#dc2626";
+        }
+      }, 1000);
+      window.postMessage({ type: "REQUEST_TRICKCAL_SYNC" }, location.origin);
     };
     $("btnPasteSync").onclick = () => {
       const box = $("pasteModalBox");
@@ -191,6 +220,7 @@
   // 확장 프로그램 메시지 수신
   window.addEventListener("message", (e) => {
     if (e.source !== window || e.origin !== location.origin || !e.data) return;
+    if (e.data.type === "APPLY_TRICKCAL_SYNC" || e.data.type === "EMPTY_TRICKCAL_SYNC") clearTimeout(extWaitTimer);
     if (e.data.type === "APPLY_TRICKCAL_SYNC") {
       applySpecToCalculator(e.data.payload, true);
       if (!e.data.auto) alert("✅ 확장 프로그램에서 트릭컬노트 데이터를 성공적으로 불러왔습니다!");
